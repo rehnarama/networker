@@ -11,6 +11,8 @@ public class NetworkManager : MonoBehaviour
 
   public GameObject instantiateObject;
 
+  public GameObject playerPrefab;
+
   private void Update()
   {
     if (NetworkState.IsClient)

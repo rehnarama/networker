@@ -20,6 +20,10 @@ public class MoveScript : MonoBehaviour
     var x = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(1);
     var z = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(2);
 
-    rb.AddForce(new Vector3(x, 0, z) * 20f);
+    rb.AddForce(new Vector3(x, 0, z), ForceMode.VelocityChange);
+    if (rb.velocity.magnitude > 3f)
+    {
+      rb.velocity = Vector3.ClampMagnitude(rb.velocity, 3f);
+    }
   }
 }

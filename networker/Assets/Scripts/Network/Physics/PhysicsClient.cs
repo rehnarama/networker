@@ -64,6 +64,11 @@ namespace Network.Physics
       gameObjects.Add(id, go);
     }
 
+    public int FindNextFreeBodyId()
+    {
+      return gameObjects.Keys.Aggregate((largest, next) => Math.Max(largest, next)) + 1;
+    }
+
     protected override void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
     {
       base.OnPacket(packet, remoteEndPoint);

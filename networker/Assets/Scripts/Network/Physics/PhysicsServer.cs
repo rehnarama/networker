@@ -105,6 +105,11 @@ namespace Network.Physics
       idPriorityMap.Add(id, priorityBody);
     }
 
+    public int FindNextFreeBodyId()
+    {
+      return idPriorityMap.Keys.Aggregate((largest, next) => Math.Max(largest, next)) + 1;
+    }
+
     private void IncreasePriorities()
     {
       foreach (var kvp in idPriorityMap)
