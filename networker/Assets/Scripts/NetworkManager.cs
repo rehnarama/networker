@@ -41,7 +41,11 @@ public class NetworkManager : MonoBehaviour
 
   private void Start()
   {
-    if (NetworkState.IsClient)
+    if (NetworkState.IsServer)
+    {
+      PhysicsServer.Instance.OnEvent += HandleOnEvent;
+    }
+    else if (NetworkState.IsClient)
     {
       PhysicsClient.Instance.OnEvent += HandleOnEvent;
     }

@@ -76,6 +76,8 @@ namespace Network.Physics
     public Queue<MultiPlayerInput> bufferedInputs { get; private set; } = new Queue<MultiPlayerInput>();
 
     public Queue<IEvent> events = new Queue<IEvent>();
+    public delegate void OnEventHandler(IEvent e);
+    public event OnEventHandler OnEvent;
 
     private Dictionary<IPEndPoint, int> players = new Dictionary<IPEndPoint, int>();
 
@@ -229,6 +231,7 @@ namespace Network.Physics
       e.EventNumber = eventCount;
       eventCount++;
       events.Enqueue(e);
+      OnEvent?.Invoke(e);
     }
 
     public (int Frame, int UnackedFrames, int PlayersJoined, float AvgInPacketSize, float AvgOutPacketSize) GetDiagnostics()
