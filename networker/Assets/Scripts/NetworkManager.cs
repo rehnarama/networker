@@ -89,4 +89,16 @@ public class NetworkManager : MonoBehaviour
       PhysicsClient.Instance.Tick();
     }
   }
+
+  private void OnApplicationQuit() {
+    if (NetworkState.IsServer)
+    {
+      PhysicsServer.Instance.Dispose();
+    }
+    if (NetworkState.IsClient)
+    {
+      PhysicsClient.Instance.Dispose();
+    }
+    
+  }
 }
