@@ -8,20 +8,20 @@ using Network.Physics;
 public class NetworkedBody : MonoBehaviour
 {
   public int playerAuthority = -1;
-  private static int id = 0;
+  public int id = 0;
 
   private Rigidbody rb;
 
-  private void Awake()
+  public void Awake()
   {
     rb = GetComponent<Rigidbody>();
     if (NetworkState.IsServer)
     {
-      PhysicsServer.Instance.RegisterBody(id++, rb);
+      PhysicsServer.Instance.RegisterBody(id, rb);
     }
     else if (NetworkState.IsClient)
     {
-      PhysicsClient.Instance.RegisterBody(id++, rb);
+      PhysicsClient.Instance.RegisterBody(id, rb);
     }
   }
 }
