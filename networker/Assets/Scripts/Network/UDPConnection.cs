@@ -22,6 +22,9 @@ namespace Network
 
     private bool disposedValue;
 
+    protected float avgInPacketSize = 0f;
+    protected float avgOutPacketSize = 0f;
+
     public UDPConnection()
     {
       this.udpClient = new UdpClient();
@@ -79,6 +82,8 @@ namespace Network
       IPacket p = packet;
       Packet.Serialize(s, ref p);
       var data = s.ToByteArray();
+
+      avgOutPacketSize = (avgOutPacketSize * 100 + data.Length) / 101f;
       // #else
       // BinaryFormatter binaryFmt = new BinaryFormatter();
       // var stream = new MemoryStream();
@@ -97,6 +102,7 @@ namespace Network
       while (this.udpClient != null)
       {
         var data = await this.udpClient.ReceiveAsync();
+        avgInPacketSize = (avgInPacketSize * 100 + data.Buffer.Length) / 101f;
 
         receivedStack.Enqueue(data);
       }

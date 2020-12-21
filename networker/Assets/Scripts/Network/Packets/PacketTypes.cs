@@ -12,5 +12,6 @@ namespace Network.Packets
     JoinAck,
     PhysicsAck,
     Input,
+    EventAck
   }
 }

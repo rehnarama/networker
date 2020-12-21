@@ -2,6 +2,7 @@ using System;
 
 namespace Network.Packets
 {
+  using Events;
   using Physics;
 
   [Serializable]
@@ -12,15 +13,17 @@ namespace Network.Packets
     public int frame;
     public MultiPlayerInput[] inputs;
     public PhysicsState[] states;
+    public IEvent[] events;
 
-    public PhysicsPacket(int frame, MultiPlayerInput[] inputs, PhysicsState[] states)
+    public PhysicsPacket(int frame, MultiPlayerInput[] inputs, PhysicsState[] states, IEvent[] events)
     {
       this.frame = frame;
       this.inputs = inputs;
       this.states = states;
+      this.events = events;
     }
 
-    public void Serialize(Serializer serializer)
+    public void Serialize(Serializer serializer, EventSerializer eventSerializer = null)
     {
       serializer.SerializeInt(ref frame);
 
@@ -46,6 +49,15 @@ namespace Network.Packets
         PhysicsState.Serialize(serializer, ref states[i]);
       }
 
+      if (eventSerializer != null)
+      {
+        eventSerializer.SerializeEvents(serializer, ref events);
+      }
+    }
+
+    public void Serialize(Serializer serializer)
+    {
+      Serialize(serializer, NetworkState.Serializer);
     }
   }
 }

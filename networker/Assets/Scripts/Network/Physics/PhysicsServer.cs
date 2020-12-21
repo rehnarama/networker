@@ -6,6 +6,7 @@ namespace Network.Physics
 {
   using System;
   using System.Net;
+  using Network.Events;
   using Packets;
 
   internal class PriorityBody : IComparable
@@ -44,6 +45,7 @@ namespace Network.Physics
     private const int MAX_INPUTS = 32;
 
     private int frameCount = 0;
+    private int eventCount = 0;
 
     private Dictionary<int, int> acks = new Dictionary<int, int>();
     private int LatestAckedFrame
@@ -51,6 +53,14 @@ namespace Network.Physics
       get
       {
         return acks.Aggregate(frameCount, (min, ack) => Math.Min(ack.Value, min));
+      }
+    }
+    private Dictionary<int, int> eventAcks = new Dictionary<int, int>();
+    private int LatestAckedEvent
+    {
+      get
+      {
+        return eventAcks.Aggregate(eventCount, (min, ack) => Math.Min(ack.Value, min));
       }
     }
 
@@ -64,6 +74,8 @@ namespace Network.Physics
       }
     }
     public Queue<MultiPlayerInput> bufferedInputs { get; private set; } = new Queue<MultiPlayerInput>();
+
+    public Queue<IEvent> events = new Queue<IEvent>();
 
     private Dictionary<IPEndPoint, int> players = new Dictionary<IPEndPoint, int>();
 
@@ -129,7 +141,7 @@ namespace Network.Physics
         idPriorityMap[data.Id].Priority = 0;
       }
 
-      var packet = new PhysicsPacket(frameCount, bufferedInputs.ToArray(), physicsData);
+      var packet = new PhysicsPacket(frameCount, bufferedInputs.ToArray(), physicsData, events.ToArray());
 
       Broadcast(packet);
 
@@ -144,16 +156,29 @@ namespace Network.Physics
 
     public override void OnJoin(JoinPacket packet, IPEndPoint remoteEndPoint)
     {
-      var playerIds = players.Values;
-      // Assign a player id to player
-      int lowestFree = 0;
-      while (playerIds.Contains(lowestFree))
-      {
-        lowestFree++;
-      }
-      players.Add(remoteEndPoint, lowestFree);
+      base.OnJoin(packet, remoteEndPoint);
 
-      Send(new JoinAckPacket(lowestFree), remoteEndPoint);
+      int playerId;
+
+      if (!players.ContainsKey(remoteEndPoint))
+      {
+        var playerIds = players.Values;
+        // Assign a player id to player
+        int lowestFree = 0;
+        while (playerIds.Contains(lowestFree))
+        {
+          lowestFree++;
+        }
+
+        playerId = lowestFree;
+        players[remoteEndPoint] = playerId;
+      }
+      else
+      {
+        playerId = players[remoteEndPoint];
+      }
+
+      Send(new JoinAckPacket(playerId), remoteEndPoint);
     }
 
     protected override void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
@@ -177,18 +202,44 @@ namespace Network.Physics
             acks[playerId] = ackPacket.frame;
           }
 
-          var largestAcked = LatestAckedFrame;
-          while (frameCount - largestAcked > bufferedInputs.Count)
+          var largestAckedFrame = LatestAckedFrame;
+          while (frameCount - largestAckedFrame > bufferedInputs.Count)
           {
             bufferedInputs.Dequeue();
+          }
+          break;
+        case PacketType.EventAck:
+          if (players.TryGetValue(remoteEndPoint, out playerId))
+          {
+            var ackPacket = (EventAckPacket)packet;
+            eventAcks[playerId] = ackPacket.id;
+          }
+
+          var largestAckedEvent = LatestAckedEvent;
+          while (eventCount - largestAckedEvent > events.Count)
+          {
+            events.Dequeue();
           }
           break;
       }
     }
 
-    public (int Frame, int LatestAcked) GetDiagnostics()
+    public void InvokeEvent(IEvent e)
     {
-      return (Frame: frameCount, LatestAcked: LatestAckedFrame);
+      e.EventNumber = eventCount;
+      eventCount++;
+      events.Enqueue(e);
+    }
+
+    public (int Frame, int UnackedFrames, int PlayersJoined, float AvgInPacketSize, float AvgOutPacketSize) GetDiagnostics()
+    {
+      return (
+        Frame: frameCount,
+        UnackedFrames: frameCount - LatestAckedFrame,
+        PlayersJoined: players.Count(),
+        AvgInPacketSize: avgInPacketSize,
+        AvgOutPacketSize: avgOutPacketSize
+      );
     }
   }
 }

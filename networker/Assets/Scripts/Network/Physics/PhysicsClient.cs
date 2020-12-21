@@ -6,16 +6,20 @@ using System;
 
 namespace Network.Physics
 {
+  using Network.Events;
   using Packets;
 
   public class PhysicsClient : Client
   {
-    private const int NumberOfBufferFrames = 5;
+    private const int N_BUFFER_FRAMES = 5;
+    private const float RETRY_JOIN_TIME = 0.3f;
 
     private int currentFrame = 0;
     private int largestFrame = 0;
+    private int latestEvent = -1;
     private bool initialFrameSent = false;
     private bool buffering = true;
+    private float lastSentJoinPacket;
     private bool hasJoined = false;
 
     private Dictionary<int, Rigidbody> gameObjects = new Dictionary<int, Rigidbody>();
@@ -26,6 +30,9 @@ namespace Network.Physics
     public MultiPlayerInput PlayerInputs { get; private set; } = MultiPlayerInput.Create();
     public PlayerInput PlayerInput { get; private set; } = PlayerInput.Create();
     public int PlayerId { get; private set; } = -1;
+
+    public delegate void OnEventHandler(IEvent e);
+    public event OnEventHandler OnEvent;
 
     private PhysicsClient(IPEndPoint serverEndpoint) : base(serverEndpoint)
     {
@@ -87,6 +94,13 @@ namespace Network.Physics
             initialFrameSent = true;
           }
           largestFrame = Math.Max(largestFrame, physicsPacket.frame);
+
+          if (physicsPacket.events != null)
+          {
+            processEvents(physicsPacket.events);
+          }
+
+          // TODO: process events
           Send(new PhysicsAckPacket(physicsPacket.frame));
           break;
         case PacketType.JoinAck:
@@ -95,6 +109,20 @@ namespace Network.Physics
           PlayerId = joinAckPacket.playerId;
           break;
       }
+    }
+
+    private void processEvents(IEvent[] events)
+    {
+      foreach (var e in events)
+      {
+        if (latestEvent < e.EventNumber)
+        {
+          OnEvent?.Invoke(e);
+          latestEvent = e.EventNumber;
+        }
+      }
+
+      Send(new EventAckPacket(latestEvent));
     }
 
     private void HandlePhysicsFrame(PhysicsState[] states, MultiPlayerInput input)
@@ -121,8 +149,23 @@ namespace Network.Physics
 
     public void Tick()
     {
-      TickInput();
-      TickPhysics();
+      if (Time.time - lastSentJoinPacket > RETRY_JOIN_TIME && !hasJoined)
+      {
+        TryJoin();
+      }
+
+      if (hasJoined)
+      {
+        TickInput();
+        TickPhysics();
+      }
+    }
+
+    public void TryJoin()
+    {
+      lastSentJoinPacket = Time.time;
+
+      Send(new JoinPacket());
     }
 
     private void TickInput()
@@ -139,7 +182,7 @@ namespace Network.Physics
         // Maybe we haven't "joined" yet?
         return;
       }
-      if (buffering && largestFrame >= currentFrame + NumberOfBufferFrames)
+      if (buffering && largestFrame >= currentFrame + N_BUFFER_FRAMES)
       {
         buffering = false;
       }
@@ -150,7 +193,7 @@ namespace Network.Physics
       }
 
       // Try to adaptively fast-forward (if we have leeway) to keep latency minimal
-      bool canFastForward = largestFrame > currentFrame + NumberOfBufferFrames;
+      bool canFastForward = largestFrame > currentFrame + N_BUFFER_FRAMES;
       var nextFrame = canFastForward ? currentFrame + 2 : currentFrame + 1;
 
       PhysicsState[] states = new PhysicsState[0];
@@ -168,6 +211,16 @@ namespace Network.Physics
       }
 
       currentFrame = nextFrame;
+    }
+
+    public (int CurrentFrame, int BufferedFrames, float AvgInPacketSize, float AvgOutPacketSize) GetDiagnostics()
+    {
+      return (
+        CurrentFrame: currentFrame,
+        BufferedFrames: largestFrame - currentFrame,
+        AvgInPacketSize: avgInPacketSize,
+        AvgOutPacketSize: avgOutPacketSize
+      );
     }
   }
 }

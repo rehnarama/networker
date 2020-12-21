@@ -23,11 +23,6 @@ namespace Network
       Send(packet, serverEndpoint);
     }
 
-    public void SendJoinPacket()
-    {
-      Send(new JoinPacket());
-    }
-
     public void ProcessPackets()
     {
       BinaryFormatter binaryFmt = new BinaryFormatter();

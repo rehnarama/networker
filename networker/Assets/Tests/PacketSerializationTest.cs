@@ -85,7 +85,7 @@ namespace Tests
       states[1].AngularVelocity = new Vector3(2, 2, 2);
       states[1].Rotation = new Quaternion(2, 2, 2, 0);
 
-      var original = new PhysicsPacket(69, inputs, states);
+      var original = new PhysicsPacket(69, inputs, states, new Network.Events.IEvent[0]);
       var originalInterface = (IPacket)original;
 
       var writer = new Serializer(new System.IO.MemoryStream());

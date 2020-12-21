@@ -2,6 +2,7 @@ using System.Net;
 
 namespace Network
 {
+  using Network.Events;
   using Physics;
 
   public static class NetworkState
@@ -9,8 +10,11 @@ namespace Network
     public static bool IsServer { get; private set; }
     public static bool IsClient { get; private set; }
 
-    public static void StartPhysicsServer()
+    public static EventSerializer Serializer { get; private set; }
+
+    public static void StartPhysicsServer(EventSerializer eventSerializer = null)
     {
+      Serializer = eventSerializer;
       if (!IsServer)
       {
         IsServer = true;
@@ -18,14 +22,15 @@ namespace Network
       }
     }
 
-    public static void StartPhysicsClient(IPEndPoint serverEndpoint, int port = Server.PORT + 1)
+    public static void StartPhysicsClient(IPEndPoint serverEndpoint, Events.EventSerializer eventSerializer = null, int port = Server.PORT + 1)
     {
+      Serializer = eventSerializer;
       if (!IsClient)
       {
         IsClient = true;
         PhysicsClient.ServerEndpoint = serverEndpoint;
         PhysicsClient.Instance.Listen(port);
-        PhysicsClient.Instance.SendJoinPacket();
+        PhysicsClient.Instance.TryJoin();
       }
     }
 

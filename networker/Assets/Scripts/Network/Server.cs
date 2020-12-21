@@ -45,7 +45,6 @@ namespace Network
         case PacketType.Join:
           clients.Add(remoteEndPoint);
           OnJoin((JoinPacket)packet, remoteEndPoint);
-          UnityEngine.Debug.Log($"Join packet from {remoteEndPoint}");
           break;
         default:
           break;

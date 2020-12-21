@@ -1,5 +1,7 @@
 
 
+using System;
+
 namespace Network.Packets
 {
   public interface IPacket
