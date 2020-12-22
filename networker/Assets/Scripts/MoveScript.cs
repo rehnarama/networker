@@ -52,8 +52,8 @@ public class MoveScript : MonoBehaviour
     var mouseX = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(3);
     var mouseY = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(4);
 
-    rotationHoriz += Input.GetAxis("Mouse X") * lookSpeed * Time.deltaTime;
-    rotationVert -= Input.GetAxis("Mouse Y") * lookSpeed * Time.deltaTime;
+    rotationHoriz += mouseX * lookSpeed * Time.deltaTime;
+    rotationVert -= mouseY * lookSpeed * Time.deltaTime;
 
     rotationVert = Mathf.Clamp(rotationVert, -80, 80);
 
@@ -94,7 +94,8 @@ public class MoveScript : MonoBehaviour
 
   }
 
-  private void HandleJumping() {
+  private void HandleJumping()
+  {
 
   }
 
