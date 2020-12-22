@@ -19,12 +19,16 @@ namespace Events
     public Vector3 Position { get => _Position.ToVector3(); set => _Position = value.ToFloatArray(); }
 
     public InstantiateTypes InstantiateType { get; set; }
+    public int PlayerAuthority { get; set; }
+    public int BodyId { get; set; }
 
-    public InstantiateEvent(int eventNumber, Vector3 position, InstantiateTypes type)
+    public InstantiateEvent(Vector3 position, InstantiateTypes type, int playerAuthority, int bodyId, int eventNumber = 0)
     {
-      EventNumber = eventNumber;
       _Position = position.ToFloatArray();
       InstantiateType = type;
+      PlayerAuthority = playerAuthority;
+      BodyId = bodyId;
+      EventNumber = eventNumber;
     }
 
 

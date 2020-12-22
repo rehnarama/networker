@@ -17,18 +17,14 @@ public class NetworkedBody : MonoBehaviour
 
   public void Awake()
   {
-    if (id == 0)
+    if (id != 0)
     {
-      if (NetworkState.IsServer)
-      {
-        id = PhysicsServer.Instance.FindNextFreeBodyId();
-      }
-      else if (NetworkState.IsClient)
-      {
-        id = PhysicsClient.Instance.FindNextFreeBodyId();
-      }
+      RegisterBody();
     }
+  }
 
+  public void RegisterBody()
+  {
     rb = GetComponent<Rigidbody>();
     if (NetworkState.IsServer)
     {
@@ -38,5 +34,6 @@ public class NetworkedBody : MonoBehaviour
     {
       PhysicsClient.Instance.RegisterBody(id, rb);
     }
+
   }
 }

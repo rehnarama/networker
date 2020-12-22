@@ -76,10 +76,13 @@ namespace Network.Physics
     public Queue<MultiPlayerInput> bufferedInputs { get; private set; } = new Queue<MultiPlayerInput>();
 
     public Queue<IEvent> events = new Queue<IEvent>();
+
     public delegate void OnEventHandler(IEvent e);
     public event OnEventHandler OnEvent;
+    public delegate void OnJoinHandler(int playerId);
+    public event OnJoinHandler OnPlayerJoin;
 
-    private Dictionary<IPEndPoint, int> players = new Dictionary<IPEndPoint, int>();
+    public Dictionary<IPEndPoint, int> Players = new Dictionary<IPEndPoint, int>();
 
     private PhysicsServer()
     {
@@ -167,9 +170,9 @@ namespace Network.Physics
 
       int playerId;
 
-      if (!players.ContainsKey(remoteEndPoint))
+      if (!Players.ContainsKey(remoteEndPoint))
       {
-        var playerIds = players.Values;
+        var playerIds = Players.Values;
         // Assign a player id to player
         int lowestFree = 0;
         while (playerIds.Contains(lowestFree))
@@ -178,14 +181,15 @@ namespace Network.Physics
         }
 
         playerId = lowestFree;
-        players[remoteEndPoint] = playerId;
+        Players[remoteEndPoint] = playerId;
       }
       else
       {
-        playerId = players[remoteEndPoint];
+        playerId = Players[remoteEndPoint];
       }
 
       Send(new JoinAckPacket(playerId), remoteEndPoint);
+      OnPlayerJoin?.Invoke(playerId);
     }
 
     protected override void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
@@ -196,14 +200,14 @@ namespace Network.Physics
       switch (packet.Type)
       {
         case PacketType.Input:
-          if (players.TryGetValue(remoteEndPoint, out playerId))
+          if (Players.TryGetValue(remoteEndPoint, out playerId))
           {
             var inputPacket = (InputPacket)packet;
             bufferedInputs.Last().Inputs[playerId] = inputPacket.input;
           }
           break;
         case PacketType.PhysicsAck:
-          if (players.TryGetValue(remoteEndPoint, out playerId))
+          if (Players.TryGetValue(remoteEndPoint, out playerId))
           {
             var ackPacket = (PhysicsAckPacket)packet;
             acks[playerId] = ackPacket.frame;
@@ -216,7 +220,7 @@ namespace Network.Physics
           }
           break;
         case PacketType.EventAck:
-          if (players.TryGetValue(remoteEndPoint, out playerId))
+          if (Players.TryGetValue(remoteEndPoint, out playerId))
           {
             var ackPacket = (EventAckPacket)packet;
             eventAcks[playerId] = ackPacket.id;
@@ -244,7 +248,7 @@ namespace Network.Physics
       return (
         Frame: frameCount,
         UnackedFrames: frameCount - LatestAckedFrame,
-        PlayersJoined: players.Count(),
+        PlayersJoined: Players.Count(),
         AvgInPacketSize: avgInPacketSize,
         AvgOutPacketSize: avgOutPacketSize
       );

@@ -9,9 +9,9 @@ public class NetworkManager : MonoBehaviour
   public KeyCode[] registredKeys;
   public UnityEvent<IGameEvent> onEvent;
 
-  public GameObject instantiateObject;
+  public NetworkedBody instantiateObject;
 
-  public GameObject playerPrefab;
+  public NetworkedBody playerPrefab;
 
   private void Update()
   {
@@ -30,13 +30,24 @@ public class NetworkManager : MonoBehaviour
 
       PhysicsClient.Instance.PlayerInput.SetAnalog(1, Input.GetAxis("Horizontal"));
       PhysicsClient.Instance.PlayerInput.SetAnalog(2, Input.GetAxis("Vertical"));
+
+      PhysicsClient.Instance.PlayerInput.SetAnalog(3, Input.GetAxis("Mouse X"));
+      PhysicsClient.Instance.PlayerInput.SetAnalog(4, Input.GetAxis("Mouse Y"));
     }
 
     if (NetworkState.IsServer)
     {
-      if (Input.GetKeyDown(KeyCode.Space))
+      if (Input.GetKeyDown(KeyCode.F1))
       {
-        PhysicsServer.Instance.InvokeEvent(new InstantiateEvent());
+        foreach (var player in PhysicsServer.Instance.Players.Values)
+        {
+          PhysicsServer.Instance.InvokeEvent(new InstantiateEvent(
+            new Vector3(0, 10, 0),
+            InstantiateEvent.InstantiateTypes.Player,
+            player,
+            PhysicsServer.Instance.FindNextFreeBodyId()
+          ));
+        }
       }
     }
   }
@@ -69,7 +80,20 @@ public class NetworkManager : MonoBehaviour
     switch (gameEvent.Type)
     {
       case GameEvents.Instantiate:
-        Instantiate(instantiateObject, new Vector3(0, 10, 0), Quaternion.identity);
+        var iEvent = (InstantiateEvent)gameEvent;
+        NetworkedBody networkedBody;
+        if (iEvent.InstantiateType == InstantiateEvent.InstantiateTypes.Cube)
+        {
+          networkedBody = Instantiate(instantiateObject, iEvent.Position, Quaternion.identity);
+        }
+        else
+        {
+          networkedBody = Instantiate(playerPrefab, iEvent.Position, Quaternion.identity);
+        }
+        networkedBody.playerAuthority = iEvent.PlayerAuthority;
+        networkedBody.id = iEvent.BodyId;
+
+        networkedBody.RegisterBody();
         break;
     }
   }
@@ -90,7 +114,8 @@ public class NetworkManager : MonoBehaviour
     }
   }
 
-  private void OnApplicationQuit() {
+  private void OnApplicationQuit()
+  {
     if (NetworkState.IsServer)
     {
       PhysicsServer.Instance.Dispose();
@@ -99,6 +124,6 @@ public class NetworkManager : MonoBehaviour
     {
       PhysicsClient.Instance.Dispose();
     }
-    
+
   }
 }
