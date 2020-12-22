@@ -47,6 +47,8 @@ namespace Network.Physics
     private int frameCount = 0;
     private int eventCount = 0;
 
+    private int bodyIdCounter = 0;
+
     private Dictionary<int, int> acks = new Dictionary<int, int>();
     private int LatestAckedFrame
     {
@@ -104,13 +106,20 @@ namespace Network.Physics
 
     public void RegisterBody(int id, Rigidbody body, bool isImportant = false)
     {
+      bodyIdCounter = Math.Max(bodyIdCounter, id);
       var priorityBody = new PriorityBody() { BodyId = id, Priority = 0, IsImportant = isImportant, Body = body };
       idPriorityMap.Add(id, priorityBody);
     }
 
     public int FindNextFreeBodyId()
     {
-      return idPriorityMap.Keys.Aggregate((largest, next) => Math.Max(largest, next)) + 1;
+      int idCandidate = bodyIdCounter;
+      while (idPriorityMap.ContainsKey(idCandidate))
+      {
+        idCandidate++;
+      }
+      bodyIdCounter++;
+      return idCandidate;
     }
 
     private void IncreasePriorities()

@@ -22,7 +22,7 @@ namespace Network.Physics
     private float lastSentJoinPacket;
     private bool hasJoined = false;
 
-    private Dictionary<int, Rigidbody> gameObjects = new Dictionary<int, Rigidbody>();
+    private Dictionary<int, NetworkedBody> gameObjects = new Dictionary<int, NetworkedBody>();
 
     private Dictionary<int, PhysicsState[]> bufferedPhysicsStates = new Dictionary<int, PhysicsState[]>();
     private Dictionary<int, MultiPlayerInput> bufferedInputs = new Dictionary<int, MultiPlayerInput>();
@@ -59,7 +59,7 @@ namespace Network.Physics
       }
     }
 
-    public void RegisterBody(int id, Rigidbody go)
+    public void RegisterBody(int id, NetworkedBody go)
     {
       gameObjects.Add(id, go);
     }
@@ -122,8 +122,8 @@ namespace Network.Physics
       {
         if (latestEvent < e.EventNumber)
         {
-          OnEvent?.Invoke(e);
           latestEvent = e.EventNumber;
+          OnEvent?.Invoke(e);
         }
       }
 
@@ -139,15 +139,15 @@ namespace Network.Physics
       // hasn't seen local input yet
       PlayerInputs.Inputs[PlayerId] = PlayerInput;
 
-      // TODO: give some slack to player object maybe?
       foreach (var data in states)
       {
         if (gameObjects.TryGetValue(data.Id, out var go))
         {
-          go.position = data.Position;
-          go.velocity = data.Velocity;
-          go.rotation = data.Rotation;
-          go.angularVelocity = data.AngularVelocity;
+          // TODO: give some slack to own player body?
+          go.body.position = data.Position;
+          go.body.velocity = data.Velocity;
+          go.body.rotation = data.Rotation;
+          go.body.angularVelocity = data.AngularVelocity;
         }
       }
     }

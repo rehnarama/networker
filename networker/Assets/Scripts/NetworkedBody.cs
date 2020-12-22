@@ -13,7 +13,7 @@ public class NetworkedBody : MonoBehaviour
   private static int idCounter = 1;
   private static HashSet<int> takenIds = new HashSet<int>();
 
-  private Rigidbody rb;
+  public Rigidbody body;
 
   public void Awake()
   {
@@ -25,14 +25,14 @@ public class NetworkedBody : MonoBehaviour
 
   public void RegisterBody()
   {
-    rb = GetComponent<Rigidbody>();
+    body = GetComponent<Rigidbody>();
     if (NetworkState.IsServer)
     {
-      PhysicsServer.Instance.RegisterBody(id, rb);
+      PhysicsServer.Instance.RegisterBody(id, body);
     }
     else if (NetworkState.IsClient)
     {
-      PhysicsClient.Instance.RegisterBody(id, rb);
+      PhysicsClient.Instance.RegisterBody(id, this);
     }
 
   }

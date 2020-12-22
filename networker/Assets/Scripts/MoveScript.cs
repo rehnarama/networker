@@ -10,9 +10,6 @@ public class MoveScript : MonoBehaviour
   private Rigidbody rb;
   private NetworkedBody nb;
 
-  float rotationHoriz = 0;
-  float rotationVert = 0;
-
   public float walkSpeed = 30f;
   public float lookSpeed = 250f;
   public float maxSpeed = 6f;
@@ -26,9 +23,6 @@ public class MoveScript : MonoBehaviour
     rb = GetComponent<Rigidbody>();
     nb = GetComponent<NetworkedBody>();
 
-    rotationHoriz = transform.localRotation.eulerAngles.y;
-    rotationVert = transform.localRotation.eulerAngles.x;
-
     if (NetworkState.IsClient)
     {
       if (PhysicsClient.Instance.PlayerId == nb.playerAuthority)
@@ -37,6 +31,25 @@ public class MoveScript : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
       }
     }
+  }
+
+  private void Update()
+  {
+    if (NetworkState.IsClient)
+    {
+      if (PhysicsClient.Instance.PlayerId == nb.playerAuthority)
+      {
+        if (Cursor.lockState == CursorLockMode.Locked && Input.GetKeyDown(KeyCode.Escape))
+        {
+          Cursor.lockState = CursorLockMode.None;
+        }
+        else if (Cursor.lockState == CursorLockMode.None && Input.GetMouseButtonDown(0))
+        {
+          Cursor.lockState = CursorLockMode.Locked;
+        }
+      }
+    }
+
   }
 
   // Update is called once per frame
@@ -52,13 +65,17 @@ public class MoveScript : MonoBehaviour
     var mouseX = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(3);
     var mouseY = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(4);
 
-    rotationHoriz += mouseX * lookSpeed * Time.deltaTime;
-    rotationVert -= mouseY * lookSpeed * Time.deltaTime;
+    float rotationHoriz = mouseX * lookSpeed * Time.deltaTime;
 
-    rotationVert = Mathf.Clamp(rotationVert, -80, 80);
+    float rotationVert = mouseY * lookSpeed * Time.deltaTime;
 
-    var targetQuaternion = Quaternion.Euler(rotationVert, rotationHoriz, 0f);
+    var horizontalQuaternion = Quaternion.AngleAxis(rotationHoriz, Vector3.up);
+    var verticalQuaternion = Quaternion.AngleAxis(rotationVert, Vector3.left);
+
+    var targetQuaternion = transform.localRotation * horizontalQuaternion * verticalQuaternion;
     transform.localRotation = Quaternion.Lerp(transform.localRotation, targetQuaternion, 1f / (1f + lookSmoothing));
+    var eulerRotation = transform.localRotation.eulerAngles;
+    transform.localRotation = Quaternion.Euler(eulerRotation.x, eulerRotation.y, 0); // We only want rotation around these two, let's remove Z-axis rotation!
   }
 
   private void handleWalking()

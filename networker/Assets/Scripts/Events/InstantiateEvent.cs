@@ -16,18 +16,23 @@ namespace Events
     public GameEvents Type => GameEvents.Instantiate;
 
     private float[] _Position;
+
     public Vector3 Position { get => _Position.ToVector3(); set => _Position = value.ToFloatArray(); }
 
     public InstantiateTypes InstantiateType { get; set; }
-    public int PlayerAuthority { get; set; }
-    public int BodyId { get; set; }
+    private int _PlayerAuthority;
+
+    public int PlayerAuthority { get => _PlayerAuthority; set => _PlayerAuthority = value; }
+    private int _BodyId;
+    public int BodyId { get => _BodyId; set => _BodyId = value; }
 
     public InstantiateEvent(Vector3 position, InstantiateTypes type, int playerAuthority, int bodyId, int eventNumber = 0)
     {
       _Position = position.ToFloatArray();
       InstantiateType = type;
-      PlayerAuthority = playerAuthority;
-      BodyId = bodyId;
+      _PlayerAuthority = playerAuthority;
+      _BodyId = bodyId;
+
       EventNumber = eventNumber;
     }
 
@@ -42,6 +47,10 @@ namespace Events
       }
 
       serializer.SerializeFloatArray(ref _Position);
+
+      serializer.SerializeInt(ref _PlayerAuthority);
+
+      serializer.SerializeInt(ref _BodyId);
     }
   }
 }
