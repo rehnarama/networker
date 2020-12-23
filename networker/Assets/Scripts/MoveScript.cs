@@ -58,6 +58,8 @@ public class MoveScript : MonoBehaviour
     handleLooking();
 
     handleWalking();
+
+    HandleJumping();
   }
 
   private void handleLooking()
@@ -113,9 +115,18 @@ public class MoveScript : MonoBehaviour
 
   private void HandleJumping()
   {
-
+    var spaceDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Space);
+    if (spaceDown && IsGrounded())
+    {
+      rb.AddForce(Vector3.up, ForceMode.VelocityChange);
+    }
   }
 
+  private bool IsGrounded()
+  {
+    float distToGround = 1f;
+    return Physics.Raycast(transform.position, -Vector3.up, distToGround + 0.1f);
+  }
 
 
 
