@@ -14,7 +14,7 @@ namespace Network.Physics
     public bool IsImportant { get; set; }
     public int Priority { get; set; }
     public int BodyId { get; set; }
-    public Rigidbody Body { get; set; }
+    public NetworkedBody Body { get; set; }
 
     public int CompareTo(object obj)
     {
@@ -104,7 +104,7 @@ namespace Network.Physics
       }
     }
 
-    public void RegisterBody(int id, Rigidbody body, bool isImportant = false)
+    public void RegisterBody(int id, NetworkedBody body, bool isImportant = false)
     {
       bodyIdCounter = Math.Max(bodyIdCounter, id);
       var priorityBody = new PriorityBody() { BodyId = id, Priority = 0, IsImportant = isImportant, Body = body };
@@ -129,7 +129,7 @@ namespace Network.Physics
         var priorityBody = kvp.Value;
         var body = priorityBody.Body;
 
-        if (body.IsSleeping())
+        if (body.body.IsSleeping())
         {
           priorityBody.Priority += 1;
         }
@@ -149,10 +149,10 @@ namespace Network.Physics
                          select new PhysicsState()
                          {
                            Id = kvp.Value.BodyId,
-                           Position = kvp.Value.Body.position,
-                           Rotation = kvp.Value.Body.rotation,
-                           Velocity = kvp.Value.Body.velocity,
-                           AngularVelocity = kvp.Value.Body.angularVelocity
+                           Position = kvp.Value.Body.body.position,
+                           Rotation = kvp.Value.Body.body.rotation,
+                           Velocity = kvp.Value.Body.body.velocity,
+                           AngularVelocity = kvp.Value.Body.body.angularVelocity
                          }).Take(MAX_OBJECTS).ToArray();
 
       foreach (var data in physicsData)
@@ -209,11 +209,7 @@ namespace Network.Physics
       switch (packet.Type)
       {
         case PacketType.Input:
-          if (Players.TryGetValue(remoteEndPoint, out playerId))
-          {
-            var inputPacket = (InputPacket)packet;
-            bufferedInputs.Last().Inputs[playerId] = inputPacket.input;
-          }
+          HandleInputPacket(packet, remoteEndPoint);
           break;
         case PacketType.PhysicsAck:
           if (Players.TryGetValue(remoteEndPoint, out playerId))
@@ -241,6 +237,29 @@ namespace Network.Physics
             events.Dequeue();
           }
           break;
+      }
+    }
+
+    private void HandleInputPacket(IPacket packet, IPEndPoint remoteEndPoint)
+    {
+      if (Players.TryGetValue(remoteEndPoint, out var playerId))
+      {
+        var inputPacket = (InputPacket)packet;
+        bufferedInputs.Last().Inputs[playerId] = inputPacket.input;
+
+        foreach (var authorityPosition in inputPacket.AuthorityPositions)
+        {
+          if (idPriorityMap.TryGetValue(authorityPosition.Key, out var pb))
+          {
+            if (
+              pb.Body.playerAuthority == playerId &&
+              Vector3.Distance(pb.Body.body.position, authorityPosition.Value) < PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
+            )
+            {
+              pb.Body.body.position = authorityPosition.Value;
+            }
+          }
+        }
       }
     }
 

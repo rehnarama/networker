@@ -81,6 +81,22 @@ namespace Network
       }
     }
 
+    public void SerializeVector3Array(ref Vector3[] a)
+    {
+      int length = a?.Length ?? 0;
+      SerializeInt(ref length);
+
+      if (IsReader)
+      {
+        a = new Vector3[length];
+      }
+
+      for (int i = 0; i < length; i++)
+      {
+        SerializeVector3(ref a[i]);
+      }
+    }
+
     public void SerializeBoolArray(ref bool[] a)
     {
       int length = a?.Length ?? 0;

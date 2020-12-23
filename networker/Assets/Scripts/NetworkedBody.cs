@@ -28,7 +28,7 @@ public class NetworkedBody : MonoBehaviour
     body = GetComponent<Rigidbody>();
     if (NetworkState.IsServer)
     {
-      PhysicsServer.Instance.RegisterBody(id, body);
+      PhysicsServer.Instance.RegisterBody(id, this);
     }
     else if (NetworkState.IsClient)
     {

@@ -19,7 +19,7 @@ namespace Tests
       originalInput.SetDigital(2, true);
       originalInput.SetDigital(3, false);
 
-      var original = new InputPacket(originalInput);
+      var original = new InputPacket(originalInput, new Dictionary<int, Vector3>());
       var originalInterface = (IPacket)original;
 
       var writer = new Serializer(new System.IO.MemoryStream());

@@ -22,7 +22,8 @@ namespace Network.Physics
     private float lastSentJoinPacket;
     private bool hasJoined = false;
 
-    private Dictionary<int, NetworkedBody> gameObjects = new Dictionary<int, NetworkedBody>();
+    private Dictionary<int, NetworkedBody> networkBodies = new Dictionary<int, NetworkedBody>();
+    private Dictionary<int, NetworkedBody> authorityBodies = new Dictionary<int, NetworkedBody>();
 
     private Dictionary<int, PhysicsState[]> bufferedPhysicsStates = new Dictionary<int, PhysicsState[]>();
     private Dictionary<int, MultiPlayerInput> bufferedInputs = new Dictionary<int, MultiPlayerInput>();
@@ -59,14 +60,18 @@ namespace Network.Physics
       }
     }
 
-    public void RegisterBody(int id, NetworkedBody go)
+    public void RegisterBody(int id, NetworkedBody body)
     {
-      gameObjects.Add(id, go);
+      networkBodies.Add(id, body);
+      if (body.playerAuthority == PlayerId)
+      {
+        authorityBodies.Add(id, body);
+      }
     }
 
     public int FindNextFreeBodyId()
     {
-      return gameObjects.Keys.Aggregate((largest, next) => Math.Max(largest, next)) + 1;
+      return networkBodies.Keys.Aggregate((largest, next) => Math.Max(largest, next)) + 1;
     }
 
     protected override void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
@@ -105,7 +110,6 @@ namespace Network.Physics
             processEvents(physicsPacket.events);
           }
 
-          // TODO: process events
           Send(new PhysicsAckPacket(physicsPacket.frame));
           break;
         case PacketType.JoinAck:
@@ -141,13 +145,18 @@ namespace Network.Physics
 
       foreach (var data in states)
       {
-        if (gameObjects.TryGetValue(data.Id, out var go))
+        if (networkBodies.TryGetValue(data.Id, out var go))
         {
-          // TODO: give some slack to own player body?
-          go.body.position = data.Position;
-          go.body.velocity = data.Velocity;
-          go.body.rotation = data.Rotation;
-          go.body.angularVelocity = data.AngularVelocity;
+          if (
+            go.playerAuthority != PlayerId ||
+            Vector3.Distance(go.body.position, data.Position) > PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
+          )
+          {
+            go.body.position = data.Position;
+            go.body.velocity = data.Velocity;
+            go.body.rotation = data.Rotation;
+            go.body.angularVelocity = data.AngularVelocity;
+          }
         }
       }
     }
@@ -175,7 +184,13 @@ namespace Network.Physics
 
     private void TickInput()
     {
-      Send(new InputPacket(PlayerInput));
+      Dictionary<int, Vector3> authorityPositions = new Dictionary<int, Vector3>();
+      foreach (var kvp in authorityBodies)
+      {
+        authorityPositions[kvp.Key] = kvp.Value.body.position;
+      }
+
+      Send(new InputPacket(PlayerInput, authorityPositions));
     }
 
     private void TickPhysics()
@@ -191,7 +206,12 @@ namespace Network.Physics
       {
         buffering = false;
       }
-      else if (buffering)
+      else if (!buffering && largestFrame - currentFrame < N_BUFFER_FRAMES / 2)
+      {
+        buffering = true;
+      }
+
+      if (buffering)
       {
         // Keep on buffering a while more so we can have jitter-free simulation
         return;
@@ -205,8 +225,8 @@ namespace Network.Physics
       bufferedPhysicsStates.TryGetValue(nextFrame, out states);
 
       MultiPlayerInput input = MultiPlayerInput.Create();
-      input.Inputs[PlayerId] = PlayerInput;
       bufferedInputs.TryGetValue(nextFrame, out input);
+      input.Inputs[PlayerId] = PlayerInput;
 
       HandlePhysicsFrame(states, input);
       for (var i = currentFrame; i <= nextFrame; i++)
