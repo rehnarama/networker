@@ -60,28 +60,15 @@ namespace Network.Physics
 
     public Dictionary<IPEndPoint, int> Players = new Dictionary<IPEndPoint, int>();
 
-    private PhysicsServer()
+    public PhysicsServer(Server server)
     {
-      server = new Server();
+      this.server = server;
       server.OnJoin += OnJoin;
       server.OnReceive += OnPacket;
       bufferedInputs.Enqueue(MultiPlayerInput.Create());
     }
 
-    private static PhysicsServer _Instance = null;
     private bool disposedValue;
-
-    public static PhysicsServer Instance
-    {
-      get
-      {
-        if (_Instance == null)
-        {
-          _Instance = new PhysicsServer();
-        }
-        return _Instance;
-      }
-    }
 
     public void Listen(int port = Server.PORT)
     {

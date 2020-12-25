@@ -23,14 +23,16 @@ namespace Network
       }
     }
 
-
     private bool disposedValue;
 
     public float AvgInPacketSize { get; set; } = 0f;
     public float AvgOutPacketSize { get; set; } = 0f;
 
-    public UDPConnection()
+    IPacketSerializer packetSerializer;
+
+    public UDPConnection(IPacketSerializer packetSerializer)
     {
+      this.packetSerializer = packetSerializer;
       this.udpClient = new UdpClient();
     }
 
@@ -82,7 +84,7 @@ namespace Network
     {
       Serializer s = Serializer.CreateWriter();
       IPacket p = packet;
-      Packet.Serialize(s, ref p);
+      packetSerializer.Serialize(s, ref p);
       var data = s.ToByteArray();
 
       AvgOutPacketSize = (AvgOutPacketSize * 100 + data.Length) / 101f;
@@ -113,7 +115,7 @@ namespace Network
         {
           var s = Serializer.CreateReader(data.Buffer);
           IPacket packet = new JoinPacket(); // Just assign something to make ref happy
-          Packet.Serialize(s, ref packet);
+          packetSerializer.Serialize(s, ref packet);
 
           packets.Add((packet, data.RemoteEndPoint));
         }

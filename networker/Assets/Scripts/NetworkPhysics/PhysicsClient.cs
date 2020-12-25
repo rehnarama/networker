@@ -37,34 +37,14 @@ namespace Network.Physics
     public delegate void OnEventHandler(IEvent e);
     public event OnEventHandler OnEvent;
 
-    private PhysicsClient(IPEndPoint serverEndpoint)
+    public PhysicsClient(Client client)
     {
-      client = new Client(serverEndpoint);
+      this.client = client;
       client.OnReceive += OnPacket;
     }
 
-    public static IPEndPoint ServerEndpoint { get; set; } = null;
-    private static PhysicsClient _Instance = null;
     private bool disposedValue;
 
-    public static PhysicsClient Instance
-    {
-      get
-      {
-        if (_Instance == null)
-        {
-          if (ServerEndpoint == null)
-          {
-            throw new SystemException("You must set ServerEndpoint property before getting first instance");
-          }
-          else
-          {
-            _Instance = new PhysicsClient(ServerEndpoint);
-          }
-        }
-        return _Instance;
-      }
-    }
 
     public void Listen(int port)
     {

@@ -12,6 +12,9 @@ namespace Network.Packets
     JoinAck,
     PhysicsAck,
     Input,
-    EventAck
+    EventAck,
+    SignallingHost,
+    SignallingHostList,
+    SignallingRequestHostList
   }
 }

@@ -21,23 +21,16 @@ public class MainMenuController : MonoBehaviour
     // TODO: create and initialize an eventSerializer for this game here and pass to StartPhysics*
 
     var gameEventSerializer = new GameEventSerializer();
-    if (role == "server")
+    var packetSerializer = new PacketSerializer();
+    if (role == "server" || role == "host")
     {
-      NetworkState.StartPhysicsServer(gameEventSerializer);
+      NetworkState.StartPhysicsServer(packetSerializer, gameEventSerializer);
     }
-    else if (role == "client")
+    if (role == "client" || role == "host")
     {
-      NetworkState.StartPhysicsClient(new IPEndPoint(IPAddress.Parse(inputField.text), Server.PORT), gameEventSerializer);
+      NetworkState.StartPhysicsClient(new IPEndPoint(IPAddress.Parse(inputField.text), Server.PORT), packetSerializer, gameEventSerializer);
     }
-    else if (role == "host")
-    {
-      NetworkState.StartPhysicsServer();
-      NetworkState.StartPhysicsClient(new IPEndPoint(IPAddress.Parse(inputField.text), Server.PORT), gameEventSerializer);
-    }
-    else
-    {
-      return;
-    }
+
 
     SceneManager.LoadScene("SampleScene");
   }

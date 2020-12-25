@@ -12,18 +12,17 @@ namespace Network
 
   public class Client : IDisposable
   {
-    internal UDPConnection connection;
+    public UDPConnection connection;
     private bool disposedValue;
     private readonly IPEndPoint serverEndpoint;
 
     public delegate void OnReceiveHandler(IPacket packet, IPEndPoint from);
     public event OnReceiveHandler OnReceive;
 
-    public Client(IPEndPoint serverEndpoint)
+    public Client(IPEndPoint serverEndpoint, UDPConnection connection)
     {
       this.serverEndpoint = serverEndpoint;
-      connection = new UDPConnection();
-
+      this.connection = connection;
     }
 
 
@@ -41,7 +40,7 @@ namespace Network
       }
     }
 
-    internal void Listen(int port)
+    public void Listen(int port)
     {
       connection.Listen(port);
     }
@@ -63,8 +62,8 @@ namespace Network
 
     ~Client()
     {
-        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        Dispose(disposing: false);
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: false);
     }
 
     public void Dispose()

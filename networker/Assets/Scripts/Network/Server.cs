@@ -12,7 +12,7 @@ namespace Network
   public class Server : IDisposable
   {
     private bool disposedValue;
-    internal UDPConnection connection;
+    public UDPConnection connection;
 
     public const int PORT = 1303;
     public HashSet<IPEndPoint> clients = new HashSet<IPEndPoint>();
@@ -22,9 +22,9 @@ namespace Network
     public delegate void OnJoinHandler(JoinPacket packet, IPEndPoint from);
     public event OnJoinHandler OnJoin;
 
-    public Server()
+    public Server(UDPConnection connection)
     {
-      connection = new UDPConnection();
+      this.connection = connection;
       OnReceive += OnPacket;
     }
 

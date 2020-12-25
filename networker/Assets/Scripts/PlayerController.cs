@@ -33,7 +33,7 @@ public class PlayerController : MonoBehaviour
 
     if (NetworkState.IsClient)
     {
-      if (PhysicsClient.Instance.PlayerId == nb.playerAuthority)
+      if (NetworkState.Client.PlayerId == nb.playerAuthority)
       {
         Camera.main.gameObject.SetActive(false);
         camera.gameObject.SetActive(true);
@@ -48,7 +48,7 @@ public class PlayerController : MonoBehaviour
   {
     if (NetworkState.IsClient)
     {
-      if (PhysicsClient.Instance.PlayerId == nb.playerAuthority)
+      if (NetworkState.Client.PlayerId == nb.playerAuthority)
       {
         if (Cursor.lockState == CursorLockMode.Locked && Input.GetKeyDown(KeyCode.Escape))
         {

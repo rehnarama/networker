@@ -21,7 +21,7 @@ public class PhysicsServerState : MonoBehaviour
     string t = "";
     if (NetworkState.IsServer)
     {
-      var diagnostics = PhysicsServer.Instance.GetDiagnostics();
+      var diagnostics = NetworkState.Server.GetDiagnostics();
       var properties = diagnostics.GetType().GetProperties();
       t += $"Server Diagnostics\n";
       t += $"\tFrame: {diagnostics.Frame}\n";
@@ -32,7 +32,7 @@ public class PhysicsServerState : MonoBehaviour
     }
     if (NetworkState.IsClient)
     {
-      var diagnostics = PhysicsClient.Instance.GetDiagnostics();
+      var diagnostics = NetworkState.Client.GetDiagnostics();
       t += $"Client Diagnostics:\n";
       t += $"\tCurrent Frame: {diagnostics.CurrentFrame}\n";
       t += $"\tBuffered Frames: {diagnostics.BufferedFrames}\n";

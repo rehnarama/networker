@@ -15,7 +15,7 @@ namespace Network
       }
     }
 
-    private byte[] buffer = new byte[4]; // Max data type is 4 atm!
+    private byte[] buffer = new byte[8]; // Max data type is 8 atm!
 
     public Serializer(MemoryStream stream, bool isReader = false)
     {
@@ -30,6 +30,7 @@ namespace Network
         true
       );
     }
+
 
     public static Serializer CreateWriter()
     {
@@ -60,6 +61,91 @@ namespace Network
       else
       {
         Stream.Write(BitConverter.GetBytes(a), 0, 1);
+      }
+    }
+
+    private void SerializeByte(ref byte a)
+    {
+      if (IsReader)
+      {
+        a = (byte)Stream.ReadByte();
+      }
+      else
+      {
+        Stream.WriteByte(a);
+      }
+    }
+
+    public void SerializeLong(ref long a)
+    {
+      if (IsReader)
+      {
+        Stream.Read(buffer, 0, 8);
+        a = BitConverter.ToInt64(buffer, 0);
+      }
+      else
+      {
+        Stream.Write(BitConverter.GetBytes(a), 0, 8);
+      }
+    }
+    public void SerializeChar(ref char a)
+    {
+      if (IsReader)
+      {
+        Stream.Read(buffer, 0, 2);
+        a = BitConverter.ToChar(buffer, 0);
+      }
+      else
+      {
+        Stream.Write(BitConverter.GetBytes(a), 0, 2);
+      }
+    }
+
+    internal void SerializeByteArray(ref byte[] a)
+    {
+      int length = a?.Length ?? 0;
+      SerializeInt(ref length);
+
+      if (IsReader)
+      {
+        a = new byte[length];
+      }
+
+      for (int i = 0; i < length; i++)
+      {
+        SerializeByte(ref a[i]);
+      }
+    }
+
+
+    public void SerializeCharArray(ref char[] a)
+    {
+      int length = a?.Length ?? 0;
+      SerializeInt(ref length);
+
+      if (IsReader)
+      {
+        a = new char[length];
+      }
+
+      for (int i = 0; i < length; i++)
+      {
+        SerializeChar(ref a[i]);
+      }
+    }
+
+    public void SerializeString(ref string a)
+    {
+      if (IsReader)
+      {
+        var arr = new char[0];
+        SerializeCharArray(ref arr);
+        a = new string(arr);
+      }
+      else
+      {
+        var arr = a.ToCharArray();
+        SerializeCharArray(ref arr);
       }
     }
 

@@ -21,36 +21,36 @@ public class NetworkManager : MonoBehaviour
       {
         foreach (var key in registredKeys)
         {
-          PhysicsClient.Instance.PlayerInput.SetDigital(
+          NetworkState.Client.PlayerInput.SetDigital(
             (int)key,
             Input.GetKey(key)
           );
         }
       }
 
-      PhysicsClient.Instance.PlayerInput.SetDigital(
+      NetworkState.Client.PlayerInput.SetDigital(
         0, 
         Input.GetMouseButton(0)
       );
 
-      PhysicsClient.Instance.PlayerInput.SetAnalog(1, Input.GetAxis("Horizontal"));
-      PhysicsClient.Instance.PlayerInput.SetAnalog(2, Input.GetAxis("Vertical"));
+      NetworkState.Client.PlayerInput.SetAnalog(1, Input.GetAxis("Horizontal"));
+      NetworkState.Client.PlayerInput.SetAnalog(2, Input.GetAxis("Vertical"));
 
-      PhysicsClient.Instance.PlayerInput.SetAnalog(3, Input.GetAxis("Mouse X"));
-      PhysicsClient.Instance.PlayerInput.SetAnalog(4, Input.GetAxis("Mouse Y"));
+      NetworkState.Client.PlayerInput.SetAnalog(3, Input.GetAxis("Mouse X"));
+      NetworkState.Client.PlayerInput.SetAnalog(4, Input.GetAxis("Mouse Y"));
     }
 
     if (NetworkState.IsServer)
     {
       if (Input.GetKeyDown(KeyCode.F1))
       {
-        foreach (var player in PhysicsServer.Instance.Players.Values)
+        foreach (var player in NetworkState.Server.Players.Values)
         {
-          PhysicsServer.Instance.InvokeEvent(new InstantiateEvent(
+          NetworkState.Server.InvokeEvent(new InstantiateEvent(
             new Vector3(0, 10, 0),
             InstantiateEvent.InstantiateTypes.Player,
             player,
-            PhysicsServer.Instance.FindNextFreeBodyId()
+            NetworkState.Server.FindNextFreeBodyId()
           ));
         }
       }
@@ -61,11 +61,11 @@ public class NetworkManager : MonoBehaviour
   {
     if (NetworkState.IsServer)
     {
-      PhysicsServer.Instance.OnEvent += HandleOnEvent;
+      NetworkState.Server.OnEvent += HandleOnEvent;
     }
     else if (NetworkState.IsClient)
     {
-      PhysicsClient.Instance.OnEvent += HandleOnEvent;
+      NetworkState.Client.OnEvent += HandleOnEvent;
     }
   }
 
@@ -73,7 +73,7 @@ public class NetworkManager : MonoBehaviour
   {
     if (NetworkState.IsClient)
     {
-      PhysicsClient.Instance.OnEvent -= HandleOnEvent;
+      NetworkState.Client.OnEvent -= HandleOnEvent;
     }
   }
 
@@ -109,13 +109,13 @@ public class NetworkManager : MonoBehaviour
   {
     if (NetworkState.IsServer)
     {
-      PhysicsServer.Instance.ProcessPackets();
-      PhysicsServer.Instance.Tick();
+      NetworkState.Server.ProcessPackets();
+      NetworkState.Server.Tick();
     }
     if (NetworkState.IsClient)
     {
-      PhysicsClient.Instance.ProcessPackets();
-      PhysicsClient.Instance.Tick();
+      NetworkState.Client.ProcessPackets();
+      NetworkState.Client.Tick();
     }
   }
 
@@ -123,11 +123,11 @@ public class NetworkManager : MonoBehaviour
   {
     if (NetworkState.IsServer)
     {
-      PhysicsServer.Instance.Dispose();
+      NetworkState.Server.Dispose();
     }
     if (NetworkState.IsClient)
     {
-      PhysicsClient.Instance.Dispose();
+      NetworkState.Client.Dispose();
     }
 
   }

@@ -11,6 +11,8 @@ namespace Tests
 {
   public class PacketSerializationTest
   {
+    IPacketSerializer ps = new PacketSerializer();
+
     [Test]
     public void InputPacket()
     {
@@ -23,12 +25,12 @@ namespace Tests
       var originalInterface = (IPacket)original;
 
       var writer = new Serializer(new System.IO.MemoryStream());
-      Packet.Serialize(writer, ref originalInterface);
+      ps.Serialize(writer, ref originalInterface);
 
       var reader = new Serializer(new System.IO.MemoryStream(writer.ToByteArray()), true);
 
       IPacket copyInterface = new InputPacket();
-      Packet.Serialize(reader, ref copyInterface);
+      ps.Serialize(reader, ref copyInterface);
       var copy = (InputPacket)copyInterface;
 
       CollectionAssert.AreEqual(original.input.AnalogInput, copy.input.AnalogInput);
@@ -43,12 +45,12 @@ namespace Tests
       var originalInterface = (IPacket)original;
 
       var writer = new Serializer(new System.IO.MemoryStream());
-      Packet.Serialize(writer, ref originalInterface);
+      ps.Serialize(writer, ref originalInterface);
 
       var reader = new Serializer(new System.IO.MemoryStream(writer.ToByteArray()), true);
 
       IPacket copyInterface = new JoinAckPacket();
-      Packet.Serialize(reader, ref copyInterface);
+      ps.Serialize(reader, ref copyInterface);
       var copy = (JoinAckPacket)copyInterface;
 
       Assert.AreEqual(original.playerId, copy.playerId);
@@ -89,12 +91,12 @@ namespace Tests
       var originalInterface = (IPacket)original;
 
       var writer = new Serializer(new System.IO.MemoryStream());
-      Packet.Serialize(writer, ref originalInterface);
+      ps.Serialize(writer, ref originalInterface);
 
       var reader = new Serializer(new System.IO.MemoryStream(writer.ToByteArray()), true);
 
       IPacket copyInterface = new PhysicsPacket();
-      Packet.Serialize(reader, ref copyInterface);
+      ps.Serialize(reader, ref copyInterface);
       var copy = (PhysicsPacket)copyInterface;
 
       Assert.AreEqual(original.frame, copy.frame);
