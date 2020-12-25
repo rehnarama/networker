@@ -28,6 +28,11 @@ public class NetworkManager : MonoBehaviour
         }
       }
 
+      PhysicsClient.Instance.PlayerInput.SetDigital(
+        0, 
+        Input.GetMouseButton(0)
+      );
+
       PhysicsClient.Instance.PlayerInput.SetAnalog(1, Input.GetAxis("Horizontal"));
       PhysicsClient.Instance.PlayerInput.SetAnalog(2, Input.GetAxis("Vertical"));
 

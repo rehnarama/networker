@@ -1,10 +1,8 @@
 using System;
 using System.IO;
-using UnityEngine;
 
 namespace Network
 {
-
   public class Serializer
   {
     public MemoryStream Stream { get; private set; }
@@ -81,14 +79,14 @@ namespace Network
       }
     }
 
-    public void SerializeVector3Array(ref Vector3[] a)
+    public void SerializeVector3Array(ref float[][] a)
     {
       int length = a?.Length ?? 0;
       SerializeInt(ref length);
 
       if (IsReader)
       {
-        a = new Vector3[length];
+        a = new float[length][];
       }
 
       for (int i = 0; i < length; i++)
@@ -142,7 +140,7 @@ namespace Network
       }
     }
 
-    public void SerializeVector3(ref Vector3 a)
+    public void SerializeVector3(ref float[] a)
     {
       if (IsReader)
       {
@@ -151,17 +149,17 @@ namespace Network
         SerializeFloat(ref y);
         SerializeFloat(ref z);
 
-        a = new Vector3(x, y, z);
+        a = new float[] { x, y, z };
       }
       else
       {
-        SerializeFloat(ref a.x);
-        SerializeFloat(ref a.y);
-        SerializeFloat(ref a.z);
+        SerializeFloat(ref a[0]);
+        SerializeFloat(ref a[1]);
+        SerializeFloat(ref a[2]);
       }
     }
 
-    public void SerializeQuaternion(ref Quaternion a)
+    public void SerializeQuaternion(ref float[] a)
     {
       if (IsReader)
       {
@@ -171,14 +169,14 @@ namespace Network
         SerializeFloat(ref z);
         SerializeFloat(ref w);
 
-        a = new Quaternion(x, y, z, w);
+        a = new float[] { x, y, z, w };
       }
       else
       {
-        SerializeFloat(ref a.x);
-        SerializeFloat(ref a.y);
-        SerializeFloat(ref a.z);
-        SerializeFloat(ref a.w);
+        SerializeFloat(ref a[0]);
+        SerializeFloat(ref a[1]);
+        SerializeFloat(ref a[2]);
+        SerializeFloat(ref a[3]);
       }
     }
 

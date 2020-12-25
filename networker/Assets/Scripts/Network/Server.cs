@@ -9,50 +9,90 @@ namespace Network
 {
   using Packets;
 
-  public class Server : UDPConnection, IDisposable
+  public class Server : IDisposable
   {
     private bool disposedValue;
-    public const int PORT = 1303;
+    internal UDPConnection connection;
 
+    public const int PORT = 1303;
     public HashSet<IPEndPoint> clients = new HashSet<IPEndPoint>();
+
+    public delegate void OnReceiveHandler(IPacket packet, IPEndPoint from);
+    public event OnReceiveHandler OnReceive;
+    public delegate void OnJoinHandler(JoinPacket packet, IPEndPoint from);
+    public event OnJoinHandler OnJoin;
+
+    public Server()
+    {
+      connection = new UDPConnection();
+      OnReceive += OnPacket;
+    }
+
+    public void Listen(int port)
+    {
+      connection.Listen(port);
+    }
 
     public void Broadcast(IPacket packet)
     {
-      Send(packet, clients);
+      connection.Send(packet, clients);
+
     }
+
+    public void Send(IPacket packet, IPEndPoint to)
+    {
+      connection.Send(packet, to);
+    }
+
 
     public void ProcessPackets()
     {
-      BinaryFormatter binaryFmt = new BinaryFormatter();
-
-      while (this.receivedStack.Count > 0)
+      var packets = this.connection.GetPackets();
+      foreach (var packet in packets)
       {
-        if (this.receivedStack.TryDequeue(out var data))
-        {
-          var s = Serializer.CreateReader(data.Buffer);
-          IPacket packet = new JoinPacket(); // Just assign something to make ref happy
-          Packet.Serialize(s, ref packet);
-
-          OnPacket(packet, data.RemoteEndPoint);
-        }
+        OnReceive?.Invoke(packet.packet, packet.from);
       }
     }
 
-    protected virtual void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
+    private void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
     {
       switch (packet.Type)
       {
         case PacketType.Join:
           clients.Add(remoteEndPoint);
-          OnJoin((JoinPacket)packet, remoteEndPoint);
+          OnJoin?.Invoke((JoinPacket)packet, remoteEndPoint);
           break;
         default:
           break;
       }
     }
 
-    public virtual void OnJoin(JoinPacket packet, IPEndPoint remoteEndPoint)
-    { }
-  }
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposedValue)
+      {
+        if (disposing)
+        {
+          // TODO: dispose managed state (managed objects)
+        }
 
+        this.connection?.Dispose();
+        this.connection = null;
+        disposedValue = true;
+      }
+    }
+
+    ~Server()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: false);
+    }
+
+    public void Dispose()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
+    }
+  }
 }

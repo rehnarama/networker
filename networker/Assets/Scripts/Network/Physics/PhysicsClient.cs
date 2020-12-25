@@ -9,10 +9,12 @@ namespace Network.Physics
   using Network.Events;
   using Packets;
 
-  public class PhysicsClient : Client
+  public class PhysicsClient : IDisposable
   {
     private const int N_BUFFER_FRAMES = 5;
     private const float RETRY_JOIN_TIME = 0.3f;
+
+    private Client client;
 
     private int currentFrame = 0;
     private int largestFrame = 0;
@@ -35,12 +37,16 @@ namespace Network.Physics
     public delegate void OnEventHandler(IEvent e);
     public event OnEventHandler OnEvent;
 
-    private PhysicsClient(IPEndPoint serverEndpoint) : base(serverEndpoint)
+    private PhysicsClient(IPEndPoint serverEndpoint)
     {
+      client = new Client(serverEndpoint);
+      client.OnReceive += OnPacket;
     }
 
     public static IPEndPoint ServerEndpoint { get; set; } = null;
     private static PhysicsClient _Instance = null;
+    private bool disposedValue;
+
     public static PhysicsClient Instance
     {
       get
@@ -60,6 +66,11 @@ namespace Network.Physics
       }
     }
 
+    public void Listen(int port)
+    {
+      client.Listen(port);
+    }
+
     public void RegisterBody(int id, NetworkedBody body)
     {
       networkBodies.Add(id, body);
@@ -74,10 +85,8 @@ namespace Network.Physics
       return networkBodies.Keys.Aggregate((largest, next) => Math.Max(largest, next)) + 1;
     }
 
-    protected override void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
+    private void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
     {
-      base.OnPacket(packet, remoteEndPoint);
-
       if (!hasJoined && packet.Type != PacketType.JoinAck)
       {
         // If we haven't joined, we should disregard this. Else
@@ -105,12 +114,12 @@ namespace Network.Physics
           }
           largestFrame = Math.Max(largestFrame, physicsPacket.frame);
 
-          if (physicsPacket.events != null)
+          if (physicsPacket.events?.Length > 0)
           {
             processEvents(physicsPacket.events);
           }
 
-          Send(new PhysicsAckPacket(physicsPacket.frame));
+          client.Send(new PhysicsAckPacket(physicsPacket.frame));
           break;
         case PacketType.JoinAck:
           hasJoined = true;
@@ -118,6 +127,11 @@ namespace Network.Physics
           PlayerId = joinAckPacket.playerId;
           break;
       }
+    }
+
+    internal void ProcessPackets()
+    {
+      client.ProcessPackets();
     }
 
     private void processEvents(IEvent[] events)
@@ -131,7 +145,7 @@ namespace Network.Physics
         }
       }
 
-      Send(new EventAckPacket(latestEvent));
+      client.Send(new EventAckPacket(latestEvent));
     }
 
     private void HandlePhysicsFrame(PhysicsState[] states, MultiPlayerInput input)
@@ -179,7 +193,7 @@ namespace Network.Physics
     {
       lastSentJoinPacket = Time.time;
 
-      Send(new JoinPacket());
+      client.Send(new JoinPacket());
     }
 
     private void TickInput()
@@ -190,7 +204,7 @@ namespace Network.Physics
         authorityPositions[kvp.Key] = kvp.Value.body.position;
       }
 
-      Send(new InputPacket(PlayerInput, authorityPositions));
+      client.Send(new InputPacket(PlayerInput, authorityPositions));
     }
 
     private void TickPhysics()
@@ -243,9 +257,40 @@ namespace Network.Physics
       return (
         CurrentFrame: currentFrame,
         BufferedFrames: largestFrame - currentFrame,
-        AvgInPacketSize: avgInPacketSize,
-        AvgOutPacketSize: avgOutPacketSize
+        AvgInPacketSize: client.connection.AvgInPacketSize,
+        AvgOutPacketSize: client.connection.AvgOutPacketSize
       );
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposedValue)
+      {
+        if (disposing)
+        {
+          // TODO: dispose managed state (managed objects)
+        }
+
+        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+        // TODO: set large fields to null
+        client?.Dispose();
+        client = null;
+        disposedValue = true;
+      }
+    }
+
+    // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+    ~PhysicsClient()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: false);
+    }
+
+    public void Dispose()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
     }
   }
 }

@@ -28,7 +28,7 @@ namespace Network.Packets
       PlayerInput.Serialize(serializer, ref input);
 
       var positionsKeys = _AuthorityPositions?.Keys?.ToArray();
-      var positionsValues = _AuthorityPositions?.Values?.ToArray();
+      var positionsValues = _AuthorityPositions?.Values?.Select(v3 => v3.ToFloatArray()).ToArray();
 
       serializer.SerializeIntArray(ref positionsKeys);
       serializer.SerializeVector3Array(ref positionsValues);
@@ -38,7 +38,7 @@ namespace Network.Packets
         _AuthorityPositions = new Dictionary<int, Vector3>();
         for (int i = 0; i < positionsKeys.Length; i++)
         {
-          _AuthorityPositions[positionsKeys[i]] = positionsValues[i];
+          _AuthorityPositions[positionsKeys[i]] = positionsValues[i].ToVector3();
         }
       }
     }

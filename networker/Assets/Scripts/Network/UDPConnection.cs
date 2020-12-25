@@ -1,13 +1,9 @@
-#define CUSTOM_SER
-
 using System;
 using System.Threading;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.Serialization.Formatters.Binary;
 using Network.Packets;
 
 
@@ -18,12 +14,20 @@ namespace Network
   {
     protected UdpClient udpClient;
     protected ConcurrentQueue<UdpReceiveResult> receivedStack = new ConcurrentQueue<UdpReceiveResult>();
-    private int listeningOnPort = -1;
+    private int port = -1;
+    public int Port
+    {
+      get
+      {
+        return Port;
+      }
+    }
+
 
     private bool disposedValue;
 
-    protected float avgInPacketSize = 0f;
-    protected float avgOutPacketSize = 0f;
+    public float AvgInPacketSize { get; set; } = 0f;
+    public float AvgOutPacketSize { get; set; } = 0f;
 
     public UDPConnection()
     {
@@ -53,7 +57,7 @@ namespace Network
           {
             // If not this error code, well who knows what could've gone wrong.
             // Let's crash and burn.
-            UnityEngine.Debug.Log(e);
+            Console.Error.WriteLine(e);
             throw e;
           }
         }
@@ -62,34 +66,26 @@ namespace Network
 
     public void Listen(int port = Server.PORT)
     {
-      listeningOnPort = TryBindPort(port);
-      UnityEngine.Debug.Log($"Bound port: {port}");
+      this.port = TryBindPort(port);
+      Console.WriteLine($"Bound port: {this.port}");
 
       Thread thread = new Thread(new ThreadStart(ReceiveLoop));
       thread.Start();
     }
 
-    protected void Send<T>(T packet, IPEndPoint to) where T : IPacket
+    public void Send<T>(T packet, IPEndPoint to) where T : IPacket
     {
       Send(packet, new IPEndPoint[] { to });
     }
 
-    protected void Send<T>(T packet, IEnumerable<IPEndPoint> to) where T : IPacket
+    public void Send<T>(T packet, IEnumerable<IPEndPoint> to) where T : IPacket
     {
-      // #if CUSTOM_SER
       Serializer s = Serializer.CreateWriter();
-      // TODO: use IPacket:Packet.Serialize function to write type as well!
       IPacket p = packet;
       Packet.Serialize(s, ref p);
       var data = s.ToByteArray();
 
-      avgOutPacketSize = (avgOutPacketSize * 100 + data.Length) / 101f;
-      // #else
-      // BinaryFormatter binaryFmt = new BinaryFormatter();
-      // var stream = new MemoryStream();
-      // binaryFmt.Serialize(stream, packet);
-      // var data = stream.ToArray();
-      // #endif
+      AvgOutPacketSize = (AvgOutPacketSize * 100 + data.Length) / 101f;
 
       foreach (var endpoint in to)
       {
@@ -102,13 +98,31 @@ namespace Network
       while (this.udpClient != null)
       {
         var data = await this.udpClient.ReceiveAsync();
-        avgInPacketSize = (avgInPacketSize * 100 + data.Buffer.Length) / 101f;
+        AvgInPacketSize = (AvgInPacketSize * 100 + data.Buffer.Length) / 101f;
 
         receivedStack.Enqueue(data);
       }
     }
 
-    protected virtual void Dispose(bool disposing)
+    public IEnumerable<(IPacket packet, IPEndPoint from)> GetPackets()
+    {
+      List<(IPacket packet, IPEndPoint from)> packets = new List<(IPacket packet, IPEndPoint from)>();
+      while (this.receivedStack.Count > 0)
+      {
+        if (this.receivedStack.TryDequeue(out var data))
+        {
+          var s = Serializer.CreateReader(data.Buffer);
+          IPacket packet = new JoinPacket(); // Just assign something to make ref happy
+          Packet.Serialize(s, ref packet);
+
+          packets.Add((packet, data.RemoteEndPoint));
+        }
+      }
+
+      return packets;
+    }
+
+    public virtual void Dispose(bool disposing)
     {
       if (!disposedValue)
       {
@@ -128,7 +142,6 @@ namespace Network
       }
     }
 
-    // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
     ~UDPConnection()
     {
       // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

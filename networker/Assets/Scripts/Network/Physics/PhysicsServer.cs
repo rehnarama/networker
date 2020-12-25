@@ -9,40 +9,14 @@ namespace Network.Physics
   using Network.Events;
   using Packets;
 
-  internal class PriorityBody : IComparable
-  {
-    public bool IsImportant { get; set; }
-    public int Priority { get; set; }
-    public int BodyId { get; set; }
-    public NetworkedBody Body { get; set; }
 
-    public int CompareTo(object obj)
-    {
-      if (obj == null) return 1;
 
-      PriorityBody otherPriorityBody = obj as PriorityBody;
-      if (otherPriorityBody != null)
-      {
-        if (IsImportant)
-        {
-          return 1;
-        }
-        else
-        {
-          return this.Priority.CompareTo(otherPriorityBody.Priority);
-        }
-      }
-      else
-      {
-        throw new ArgumentException("Object is not a PriorityBody");
-      }
-    }
-  }
-
-  public class PhysicsServer : Server
+  public class PhysicsServer : IDisposable
   {
     private const int MAX_OBJECTS = 32;
     private const int MAX_INPUTS = 32;
+
+    private Server server;
 
     private int frameCount = 0;
     private int eventCount = 0;
@@ -88,10 +62,15 @@ namespace Network.Physics
 
     private PhysicsServer()
     {
+      server = new Server();
+      server.OnJoin += OnJoin;
+      server.OnReceive += OnPacket;
       bufferedInputs.Enqueue(MultiPlayerInput.Create());
     }
 
     private static PhysicsServer _Instance = null;
+    private bool disposedValue;
+
     public static PhysicsServer Instance
     {
       get
@@ -102,6 +81,11 @@ namespace Network.Physics
         }
         return _Instance;
       }
+    }
+
+    public void Listen(int port = Server.PORT)
+    {
+      server.Listen(port);
     }
 
     public void RegisterBody(int id, NetworkedBody body, bool isImportant = false)
@@ -140,6 +124,11 @@ namespace Network.Physics
       }
     }
 
+    internal void ProcessPackets()
+    {
+      server.ProcessPackets();
+    }
+
     public void Tick()
     {
       IncreasePriorities();
@@ -162,7 +151,7 @@ namespace Network.Physics
 
       var packet = new PhysicsPacket(frameCount, bufferedInputs.ToArray(), physicsData, events.ToArray());
 
-      Broadcast(packet);
+      server.Broadcast(packet);
 
       frameCount++;
 
@@ -173,10 +162,8 @@ namespace Network.Physics
       }
     }
 
-    public override void OnJoin(JoinPacket packet, IPEndPoint remoteEndPoint)
+    private void OnJoin(JoinPacket packet, IPEndPoint remoteEndPoint)
     {
-      base.OnJoin(packet, remoteEndPoint);
-
       int playerId;
 
       if (!Players.ContainsKey(remoteEndPoint))
@@ -197,13 +184,12 @@ namespace Network.Physics
         playerId = Players[remoteEndPoint];
       }
 
-      Send(new JoinAckPacket(playerId), remoteEndPoint);
+      server.Send(new JoinAckPacket(playerId), remoteEndPoint);
       OnPlayerJoin?.Invoke(playerId);
     }
 
-    protected override void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
+    private void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
     {
-      base.OnPacket(packet, remoteEndPoint);
       int playerId;
 
       switch (packet.Type)
@@ -277,9 +263,69 @@ namespace Network.Physics
         Frame: frameCount,
         UnackedFrames: frameCount - LatestAckedFrame,
         PlayersJoined: Players.Count(),
-        AvgInPacketSize: avgInPacketSize,
-        AvgOutPacketSize: avgOutPacketSize
+        AvgInPacketSize: server.connection.AvgInPacketSize,
+        AvgOutPacketSize: server.connection.AvgOutPacketSize
       );
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposedValue)
+      {
+        if (disposing)
+        {
+          // TODO: dispose managed state (managed objects)
+        }
+
+        // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+        // TODO: set large fields to null
+        server?.Dispose();
+        server = null;
+        disposedValue = true;
+      }
+    }
+
+    ~PhysicsServer()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: false);
+    }
+
+    public void Dispose()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
+    }
+  }
+
+  internal class PriorityBody : IComparable
+  {
+    public bool IsImportant { get; set; }
+    public int Priority { get; set; }
+    public int BodyId { get; set; }
+    public NetworkedBody Body { get; set; }
+
+    public int CompareTo(object obj)
+    {
+      if (obj == null) return 1;
+
+      PriorityBody otherPriorityBody = obj as PriorityBody;
+      if (otherPriorityBody != null)
+      {
+        if (IsImportant)
+        {
+          return 1;
+        }
+        else
+        {
+          return this.Priority.CompareTo(otherPriorityBody.Priority);
+        }
+      }
+      else
+      {
+        throw new ArgumentException("Object is not a PriorityBody");
+      }
     }
   }
 }

@@ -6,46 +6,72 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Network
 {
+  using System;
   using Packets;
 
 
-  public class Client : UDPConnection
+  public class Client : IDisposable
   {
+    internal UDPConnection connection;
+    private bool disposedValue;
     private readonly IPEndPoint serverEndpoint;
+
+    public delegate void OnReceiveHandler(IPacket packet, IPEndPoint from);
+    public event OnReceiveHandler OnReceive;
 
     public Client(IPEndPoint serverEndpoint)
     {
       this.serverEndpoint = serverEndpoint;
+      connection = new UDPConnection();
+
     }
+
 
     public void Send(IPacket packet)
     {
-      Send(packet, serverEndpoint);
+      connection.Send(packet, serverEndpoint);
     }
 
     public void ProcessPackets()
     {
-      BinaryFormatter binaryFmt = new BinaryFormatter();
-
-      while (this.receivedStack.Count > 0)
+      var packets = this.connection.GetPackets();
+      foreach (var packet in packets)
       {
-        if (this.receivedStack.TryDequeue(out var data))
-        {
-          var s = Serializer.CreateReader(data.Buffer);
-          IPacket packet = new JoinPacket(); // Just assign something to make ref happy
-          Packet.Serialize(s, ref packet);
-
-          OnPacket(packet, data.RemoteEndPoint);
-        }
+        OnReceive?.Invoke(packet.packet, packet.from);
       }
     }
-    protected virtual void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
+
+    internal void Listen(int port)
     {
-      switch (packet.Type)
+      connection.Listen(port);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!disposedValue)
       {
-        default:
-          break;
+        if (disposing)
+        {
+          // TODO: dispose managed state (managed objects)
+        }
+
+        connection?.Dispose();
+        connection = null;
+        disposedValue = true;
       }
+    }
+
+    ~Client()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: false);
+    }
+
+    public void Dispose()
+    {
+      // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
     }
   }
 }
