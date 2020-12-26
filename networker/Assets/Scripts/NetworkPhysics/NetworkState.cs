@@ -30,13 +30,6 @@ namespace Network
         Server = new PhysicsServer(udpServer);
         Server.Listen(port);
 
-        udpServer.Send(new SignallingHostPacket()
-        {
-          Name = "Halloj!",
-        }, new IPEndPoint(
-          IPAddress.Loopback,
-          1302
-        ));
       }
     }
 

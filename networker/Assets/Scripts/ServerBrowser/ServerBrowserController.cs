@@ -41,6 +41,7 @@ public class ServerBrowserController : MonoBehaviour
   public void Host()
   {
     NetworkState.StartPhysicsServer(new PacketSerializer(), new GameEventSerializer());
+    NetworkState.StartPhysicsClient(new IPEndPoint(IPAddress.Loopback, Config.SERVER_PORT), new PacketSerializer(), new GameEventSerializer());
     GotoLobby();
   }
 

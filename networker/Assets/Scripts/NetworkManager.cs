@@ -3,9 +3,12 @@ using UnityEngine.Events;
 using Network;
 using Network.Physics;
 using Events;
+using UnityEngine.SceneManagement;
 
 public class NetworkManager : MonoBehaviour
 {
+  private static NetworkManager instance;
+
   public KeyCode[] registredKeys;
   public UnityEvent<IGameEvent> onEvent;
 
@@ -29,7 +32,7 @@ public class NetworkManager : MonoBehaviour
       }
 
       NetworkState.Client.PlayerInput.SetDigital(
-        0, 
+        0,
         Input.GetMouseButton(0)
       );
 
@@ -59,6 +62,16 @@ public class NetworkManager : MonoBehaviour
 
   private void Start()
   {
+    // Make sure we have one and only one NetworkManager
+    if (instance != null)
+    {
+      Destroy(gameObject);
+      return;
+    }
+
+    instance = this;
+    DontDestroyOnLoad(gameObject);
+
     if (NetworkState.IsServer)
     {
       NetworkState.Server.OnEvent += HandleOnEvent;
@@ -71,6 +84,10 @@ public class NetworkManager : MonoBehaviour
 
   private void OnDestroy()
   {
+    if (NetworkState.IsServer)
+    {
+      NetworkState.Server.OnEvent -= HandleOnEvent;
+    }
     if (NetworkState.IsClient)
     {
       NetworkState.Client.OnEvent -= HandleOnEvent;
@@ -99,6 +116,10 @@ public class NetworkManager : MonoBehaviour
         networkedBody.id = iEvent.BodyId;
 
         networkedBody.RegisterBody();
+        break;
+      case GameEvents.LoadScene:
+        var lsEvent = (LoadSceneEvent)gameEvent;
+        SceneManager.LoadScene(lsEvent.Scene);
         break;
     }
   }

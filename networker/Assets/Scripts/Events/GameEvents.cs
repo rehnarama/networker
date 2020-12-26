@@ -6,6 +6,7 @@ namespace Events
   public enum GameEvents
   {
     Instantiate,
+    LoadScene,
   }
 
   public interface IGameEvent : IEvent

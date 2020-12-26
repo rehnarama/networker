@@ -73,7 +73,7 @@ namespace Signalling
           Name = signallingHost.Name
         };
 
-        Console.WriteLine("Got signalling host");
+        Console.WriteLine($"Starting to host: {signallingHost.Name} from {from}");
       }
       else if (packet.Type == PacketType.SignallingRequestHostList)
       {

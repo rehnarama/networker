@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Timers;
 using Network.Packets;
 using Network.Packets.Signalling;
 
@@ -13,6 +14,8 @@ namespace Network.Signalling
     public delegate void OnHostListHandler(SignallingHostList hostList);
     public event OnHostListHandler OnHostList;
 
+    private Timer hostTimer;
+
     public SignallingClient(IPEndPoint server, int port)
     {
       connection = new UDPConnection(new BasePacketSerializer());
@@ -23,7 +26,8 @@ namespace Network.Signalling
 
     public void StopHosting()
     {
-      // TODO: stop hosting
+      hostTimer?.Stop();
+      hostTimer = null;
     }
 
     public SignallingClient(IPEndPoint server, UDPConnection connection)
@@ -53,11 +57,24 @@ namespace Network.Signalling
       connection.Send(new SignallingRequestHostListPacket(), signallingServer);
     }
 
-    public void StartHosting()
+    public void StartHosting(string name)
     {
+      hostTimer?.Stop();
 
-      // TODO loop to continue sending
-      connection.Send(new SignallingHostPacket() { Name = "My server" }, signallingServer);
+      SendHostPacket(name);
+      hostTimer = new Timer(2000);
+      hostTimer.Elapsed += (object sender, ElapsedEventArgs e) =>
+      {
+        SendHostPacket(name);
+      };
+
+      hostTimer.AutoReset = true;
+      hostTimer.Start();
+    }
+
+    private void SendHostPacket(string name)
+    {
+      connection.Send(new SignallingHostPacket() { Name = name }, signallingServer);
     }
   }
 }

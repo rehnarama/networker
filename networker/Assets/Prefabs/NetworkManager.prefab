@@ -43,3 +43,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2949d151c2670cd4f88b4ac081b48973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  registredKeys: 20000000
+  onEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  instantiateObject: {fileID: 464743150964666309, guid: be410f7bc6c2963489f90e5c03b88559,
+    type: 3}
+  playerPrefab: {fileID: 1828143183752956991, guid: 0d7b1f7c0c6eab2449bb4662ff9fa5b4,
+    type: 3}

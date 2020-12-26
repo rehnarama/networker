@@ -41,6 +41,9 @@ namespace Events
           case GameEvents.Instantiate:
             e = new InstantiateEvent();
             break;
+          case GameEvents.LoadScene:
+            e = new LoadSceneEvent();
+            break;
         }
 
         e.EventNumber = eventNumber;
