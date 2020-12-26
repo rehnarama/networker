@@ -40,7 +40,7 @@ namespace Network.Physics
     public PhysicsClient(Client client)
     {
       this.client = client;
-      client.OnReceive += OnPacket;
+      client.OnPacket += OnPacket;
     }
 
     private bool disposedValue;

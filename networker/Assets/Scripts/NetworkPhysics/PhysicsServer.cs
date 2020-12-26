@@ -7,6 +7,7 @@ namespace Network.Physics
   using System;
   using System.Net;
   using Network.Events;
+  using Network.Signalling;
   using Packets;
 
 
@@ -16,7 +17,14 @@ namespace Network.Physics
     private const int MAX_OBJECTS = 32;
     private const int MAX_INPUTS = 32;
 
-    private Server server;
+    public Server Server { get; set; }
+    public UDPConnection Connection
+    {
+      get
+      {
+        return Server.Connection;
+      }
+    }
 
     private int frameCount = 0;
     private int eventCount = 0;
@@ -62,17 +70,17 @@ namespace Network.Physics
 
     public PhysicsServer(Server server)
     {
-      this.server = server;
+      this.Server = server;
       server.OnJoin += OnJoin;
-      server.OnReceive += OnPacket;
+      server.OnPacket += OnPacket;
       bufferedInputs.Enqueue(MultiPlayerInput.Create());
     }
 
     private bool disposedValue;
 
-    public void Listen(int port = Server.PORT)
+    public void Listen(int port)
     {
-      server.Listen(port);
+      Server.Listen(port);
     }
 
     public void RegisterBody(int id, NetworkedBody body, bool isImportant = false)
@@ -113,7 +121,7 @@ namespace Network.Physics
 
     internal void ProcessPackets()
     {
-      server.ProcessPackets();
+      Server.ProcessPackets();
     }
 
     public void Tick()
@@ -138,7 +146,7 @@ namespace Network.Physics
 
       var packet = new PhysicsPacket(frameCount, bufferedInputs.ToArray(), physicsData, events.ToArray());
 
-      server.Broadcast(packet);
+      Server.Broadcast(packet);
 
       frameCount++;
 
@@ -171,7 +179,7 @@ namespace Network.Physics
         playerId = Players[remoteEndPoint];
       }
 
-      server.Send(new JoinAckPacket(playerId), remoteEndPoint);
+      Server.Send(new JoinAckPacket(playerId), remoteEndPoint);
       OnPlayerJoin?.Invoke(playerId);
     }
 
@@ -250,8 +258,8 @@ namespace Network.Physics
         Frame: frameCount,
         UnackedFrames: frameCount - LatestAckedFrame,
         PlayersJoined: Players.Count(),
-        AvgInPacketSize: server.connection.AvgInPacketSize,
-        AvgOutPacketSize: server.connection.AvgOutPacketSize
+        AvgInPacketSize: Server.Connection.AvgInPacketSize,
+        AvgOutPacketSize: Server.Connection.AvgOutPacketSize
       );
     }
 
@@ -266,8 +274,8 @@ namespace Network.Physics
 
         // TODO: free unmanaged resources (unmanaged objects) and override finalizer
         // TODO: set large fields to null
-        server?.Dispose();
-        server = null;
+        Server?.Dispose();
+        Server = null;
         disposedValue = true;
       }
     }

@@ -16,8 +16,17 @@ namespace Network
     private bool disposedValue;
     private readonly IPEndPoint serverEndpoint;
 
-    public delegate void OnReceiveHandler(IPacket packet, IPEndPoint from);
-    public event OnReceiveHandler OnReceive;
+    public event UDPConnection.OnPacketHandler OnPacket
+    {
+      add
+      {
+        connection.OnPacket += value;
+      }
+      remove
+      {
+        connection.OnPacket -= value;
+      }
+    }
 
     public Client(IPEndPoint serverEndpoint, UDPConnection connection)
     {
@@ -33,11 +42,8 @@ namespace Network
 
     public void ProcessPackets()
     {
-      var packets = this.connection.GetPackets();
-      foreach (var packet in packets)
-      {
-        OnReceive?.Invoke(packet.packet, packet.from);
-      }
+      this.connection.ProcessPackets();
+
     }
 
     public void Listen(int port)

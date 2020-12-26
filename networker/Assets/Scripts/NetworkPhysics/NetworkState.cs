@@ -5,6 +5,7 @@ namespace Network
   using System;
   using Network.Events;
   using Network.Packets.Signalling;
+  using Network.Signalling;
   using Physics;
 
   public static class NetworkState
@@ -17,7 +18,7 @@ namespace Network
 
     public static EventSerializer Serializer { get; private set; }
 
-    public static void StartPhysicsServer(IPacketSerializer packetSerializer, EventSerializer eventSerializer = null)
+    public static void StartPhysicsServer(IPacketSerializer packetSerializer, EventSerializer eventSerializer = null, int port = Config.SERVER_PORT)
     {
       Serializer = eventSerializer;
       if (!IsServer)
@@ -27,7 +28,7 @@ namespace Network
         var udpConnection = new UDPConnection(packetSerializer);
         var udpServer = new Network.Server(udpConnection);
         Server = new PhysicsServer(udpServer);
-        Server.Listen();
+        Server.Listen(port);
 
         udpServer.Send(new SignallingHostPacket()
         {
@@ -51,7 +52,7 @@ namespace Network
       }
     }
 
-    public static void StartPhysicsClient(IPEndPoint serverEndpoint, IPacketSerializer packetSerializer, Events.EventSerializer eventSerializer = null, int port = Network.Server.PORT + 1)
+    public static void StartPhysicsClient(IPEndPoint serverEndpoint, IPacketSerializer packetSerializer, Events.EventSerializer eventSerializer = null, int port = Config.CLIENT_PORT)
     {
       Serializer = eventSerializer;
       if (!IsClient)

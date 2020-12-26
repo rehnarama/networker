@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Timers;
 using Network;
 using Network.Packets;
@@ -13,13 +15,17 @@ namespace Signalling
     public UDPConnection connection;
     private Timer timer;
 
-    private List<Network.Signalling.SignallingHost> hosts = new List<Network.Signalling.SignallingHost>();
-    public List<Network.Signalling.SignallingHost> Hosts { get => hosts; set => hosts = value; }
+    public Dictionary<IPEndPoint, SignallingHost> Hosts { get; set; } = new Dictionary<IPEndPoint, SignallingHost>();
+    private Dictionary<IPEndPoint, DateTime> LastUpdated { get; set; } = new Dictionary<IPEndPoint, DateTime>();
+    private const float EVICTION_TIME = 5f;
+
+
 
     public SignallingServer(int port = 1302)
     {
       connection = new UDPConnection(new SignallingPacketSerializer());
       connection.Listen(port);
+      connection.OnPacket += HandleOnPacket;
 
 
       timer = new Timer(16);
@@ -31,25 +37,50 @@ namespace Signalling
 
     private void Tick(object sender, ElapsedEventArgs e)
     {
-      var packets = connection.GetPackets();
+      connection.ProcessPackets();
 
-      foreach (var p in packets)
+      var toEvict = new List<IPEndPoint>();
+
+      foreach (var kvp in LastUpdated)
       {
+        var ep = kvp.Key;
+        var lastUpdated = kvp.Value;
 
-        var (packet, from) = p;
-
-        Console.WriteLine(packet.Type);
-
-        if (packet.Type == PacketType.SignallingHost)
+        if (DateTime.Now - lastUpdated > TimeSpan.FromSeconds(EVICTION_TIME))
         {
-          var signallingHost = (SignallingHostPacket)packet;
-          hosts.Add(new Network.Signalling.SignallingHost()
-          {
-            EndPoint = from,
-            Name = signallingHost.Name
-          });
-          Console.WriteLine($"Got: {signallingHost.Name} from: {from}");
+          toEvict.Add(ep);
         }
+      }
+
+      foreach (var ep in toEvict)
+      {
+        LastUpdated.Remove(ep);
+        Hosts.Remove(ep);
+      }
+    }
+
+    private void HandleOnPacket(IPacket packet, IPEndPoint from)
+    {
+      if (packet.Type == PacketType.SignallingHost)
+      {
+        // TODO: remove from list if not updated at least 10s aparts
+
+        LastUpdated[from] = DateTime.Now;
+        var signallingHost = (SignallingHostPacket)packet;
+        Hosts[from] = new Network.Signalling.SignallingHost()
+        {
+          EndPoint = from,
+          Name = signallingHost.Name
+        };
+
+        Console.WriteLine("Got signalling host");
+      }
+      else if (packet.Type == PacketType.SignallingRequestHostList)
+      {
+        connection.Send(new SignallingHostListPacket()
+        {
+          List = new SignallingHostList() { Servers = Hosts.Values.ToArray() }
+        }, from);
       }
     }
   }

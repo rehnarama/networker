@@ -28,6 +28,9 @@ namespace Network
     public float AvgInPacketSize { get; set; } = 0f;
     public float AvgOutPacketSize { get; set; } = 0f;
 
+    public delegate void OnPacketHandler(IPacket packet, IPEndPoint from);
+    public event OnPacketHandler OnPacket;
+
     IPacketSerializer packetSerializer;
 
     public UDPConnection(IPacketSerializer packetSerializer)
@@ -66,7 +69,7 @@ namespace Network
       }
     }
 
-    public void Listen(int port = Server.PORT)
+    public void Listen(int port)
     {
       this.port = TryBindPort(port);
       Console.WriteLine($"Bound port: {this.port}");
@@ -106,9 +109,8 @@ namespace Network
       }
     }
 
-    public IEnumerable<(IPacket packet, IPEndPoint from)> GetPackets()
+    public void ProcessPackets()
     {
-      List<(IPacket packet, IPEndPoint from)> packets = new List<(IPacket packet, IPEndPoint from)>();
       while (this.receivedStack.Count > 0)
       {
         if (this.receivedStack.TryDequeue(out var data))
@@ -117,11 +119,9 @@ namespace Network
           IPacket packet = new JoinPacket(); // Just assign something to make ref happy
           packetSerializer.Serialize(s, ref packet);
 
-          packets.Add((packet, data.RemoteEndPoint));
+          OnPacket?.Invoke(packet, data.RemoteEndPoint);
         }
       }
-
-      return packets;
     }
 
     public virtual void Dispose(bool disposing)

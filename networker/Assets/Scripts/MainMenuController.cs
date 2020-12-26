@@ -28,7 +28,7 @@ public class MainMenuController : MonoBehaviour
     }
     if (role == "client" || role == "host")
     {
-      NetworkState.StartPhysicsClient(new IPEndPoint(IPAddress.Parse(inputField.text), Server.PORT), packetSerializer, gameEventSerializer);
+      NetworkState.StartPhysicsClient(new IPEndPoint(IPAddress.Parse(inputField.text), Config.SERVER_PORT), packetSerializer, gameEventSerializer);
     }
 
 

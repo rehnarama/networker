@@ -7,54 +7,61 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Network
 {
+  using Network.Signalling;
   using Packets;
 
   public class Server : IDisposable
   {
     private bool disposedValue;
-    public UDPConnection connection;
+    public UDPConnection Connection { get; private set; }
 
-    public const int PORT = 1303;
     public HashSet<IPEndPoint> clients = new HashSet<IPEndPoint>();
 
-    public delegate void OnReceiveHandler(IPacket packet, IPEndPoint from);
-    public event OnReceiveHandler OnReceive;
+    public event UDPConnection.OnPacketHandler OnPacket
+    {
+      add
+      {
+        Connection.OnPacket += value;
+      }
+      remove
+      {
+        Connection.OnPacket -= value;
+      }
+    }
     public delegate void OnJoinHandler(JoinPacket packet, IPEndPoint from);
     public event OnJoinHandler OnJoin;
 
+
     public Server(UDPConnection connection)
     {
-      this.connection = connection;
-      OnReceive += OnPacket;
+      this.Connection = connection;
+      OnPacket += HandleOnPacket;
+
     }
 
     public void Listen(int port)
     {
-      connection.Listen(port);
+      Connection.Listen(port);
     }
 
     public void Broadcast(IPacket packet)
     {
-      connection.Send(packet, clients);
+      Connection.Send(packet, clients);
 
     }
 
     public void Send(IPacket packet, IPEndPoint to)
     {
-      connection.Send(packet, to);
+      Connection.Send(packet, to);
     }
 
 
     public void ProcessPackets()
     {
-      var packets = this.connection.GetPackets();
-      foreach (var packet in packets)
-      {
-        OnReceive?.Invoke(packet.packet, packet.from);
-      }
+      this.Connection.ProcessPackets();
     }
 
-    private void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
+    private void HandleOnPacket(IPacket packet, IPEndPoint remoteEndPoint)
     {
       switch (packet.Type)
       {
@@ -76,8 +83,8 @@ namespace Network
           // TODO: dispose managed state (managed objects)
         }
 
-        this.connection?.Dispose();
-        this.connection = null;
+        this.Connection?.Dispose();
+        this.Connection = null;
         disposedValue = true;
       }
     }

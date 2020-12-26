@@ -26,7 +26,7 @@ namespace signalling.Controllers
     [HttpGet]
     public IEnumerable<HostReturnType> Get()
     {
-      return signallingServer.Hosts.Select(host => new HostReturnType() { Name = host.Name, IpAddress = host.EndPoint.ToString() });
+      return signallingServer.Hosts.Values.Select(host => new HostReturnType() { Name = host.Name, IpAddress = host.EndPoint.ToString() });
     }
 
     [Serializable]
