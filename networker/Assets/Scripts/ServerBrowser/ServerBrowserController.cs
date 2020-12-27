@@ -19,12 +19,18 @@ public class ServerBrowserController : MonoBehaviour
   private float lastRefresh = float.NegativeInfinity;
   public float refreshTime = 2f;
 
+  public TMPro.TMP_Text nothingFoundText;
+
+  public LoadingText serverLoadingText;
+
   private void Awake()
   {
     searchClient = new SignallingClient(Config.SIGNALLING_SERVER_ENDPOINT, Config.CLIENT_PORT);
     searchClient.OnHostList += OnHostList;
 
     hostList.OnJoin += HandleOnJoin;
+
+    nothingFoundText.gameObject.SetActive(false);
   }
 
   private void HandleOnJoin(IPEndPoint endPoint)
@@ -48,6 +54,16 @@ public class ServerBrowserController : MonoBehaviour
   private void OnHostList(SignallingHostList hostList)
   {
     this.hostList.HostList = hostList;
+    if (hostList.Servers.Length == 0)
+    {
+      nothingFoundText.gameObject.SetActive(true);
+    }
+    else
+    {
+      nothingFoundText.gameObject.SetActive(false);
+    }
+
+    serverLoadingText.Reset();
   }
 
   private void Update()
