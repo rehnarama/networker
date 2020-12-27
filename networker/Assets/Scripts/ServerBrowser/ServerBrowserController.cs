@@ -29,7 +29,7 @@ public class ServerBrowserController : MonoBehaviour
 
   private void HandleOnJoin(IPEndPoint endPoint)
   {
-    NetworkState.StartPhysicsClient(endPoint, new PacketSerializer(), new EventSerializer());
+    NetworkState.StartPhysicsClient(endPoint, new PacketSerializer(), new GameEventSerializer());
     GotoLobby();
   }
 

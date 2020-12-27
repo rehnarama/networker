@@ -88,7 +88,7 @@ public class NetworkManager : MonoBehaviour
     {
       NetworkState.Server.OnEvent -= HandleOnEvent;
     }
-    if (NetworkState.IsClient)
+    else if (NetworkState.IsClient)
     {
       NetworkState.Client.OnEvent -= HandleOnEvent;
     }

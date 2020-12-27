@@ -144,6 +144,7 @@ namespace Network.Physics
         idPriorityMap[data.Id].Priority = 0;
       }
 
+
       var packet = new PhysicsPacket(frameCount, bufferedInputs.ToArray(), physicsData, events.ToArray());
 
       Server.Broadcast(packet);
@@ -173,6 +174,9 @@ namespace Network.Physics
 
         playerId = lowestFree;
         Players[remoteEndPoint] = playerId;
+
+        eventAcks[playerId] = LatestAckedEvent;
+        acks[playerId] = LatestAckedFrame;
       }
       else
       {
