@@ -23,7 +23,9 @@ public class CharacterCameraController : MonoBehaviour
 
   private void UpdatePosition()
   {
-    var targetPosition = head.transform.position + head.transform.rotation * (Vector3.back * targetDistance);
+    var targetRotation = head.transform.localRotation;
+
+    var targetPosition = head.transform.position + targetRotation * (Vector3.back * targetDistance);
 
     var delta = targetPosition - head.transform.position;
 
@@ -31,7 +33,7 @@ public class CharacterCameraController : MonoBehaviour
     {
       if (hit.collider.gameObject.tag == "Terrain")
       {
-        targetPosition = head.transform.position + head.transform.rotation * (Vector3.back * hit.distance * 0.95f);
+        targetPosition = head.transform.position + targetRotation * (Vector3.back * hit.distance * 0.95f);
       }
     }
     transform.position = targetPosition;
@@ -39,7 +41,7 @@ public class CharacterCameraController : MonoBehaviour
 
   private void UpdateRotation()
   {
-    var targetRotation = head.transform.rotation;
+    var targetRotation = head.transform.localRotation;
     transform.rotation = targetRotation;
   }
 }

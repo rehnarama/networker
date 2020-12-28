@@ -35,6 +35,7 @@ public class PlayerController : MonoBehaviour
   public float jumpPower = 2f;
 
   private bool previousSpaceDown = false;
+  private Collider latestWallJumpCollider = null;
 
   public bool IsControlling
   {
@@ -83,39 +84,37 @@ public class PlayerController : MonoBehaviour
       }
     }
 
+
+    HandleWallRunning();
+    handleLooking();
   }
 
-  // Update is called once per frame
   void FixedUpdate()
   {
-    handleLooking();
-
     handleWalking();
 
     HandleJumping();
-
-    HandleBody();
-
-    HandleWallRunning();
   }
+
 
   private void HandleWallRunning()
   {
+    Quaternion targetQuat = Quaternion.identity;
     if (IsWallRunning(out var hit))
     {
-      rb.AddForce(Physics.gravity * rb.mass * -0.5f); // Decrease gravity by 50%
+      if (rb.velocity.y < 0)
+      {
+        rb.AddForce(Physics.gravity * rb.mass * -0.5f); // Decrease gravity by 50%
+      }
 
-      body.rotation = Quaternion.FromToRotation(Vector3.up, (hit.normal + Vector3.up).normalized);
+      targetQuat = Quaternion.FromToRotation(Vector3.up, (hit.normal + Vector3.up).normalized);
+
+      rb.AddForce(-hit.normal * 0.2f);
     }
-    else
-    {
-      body.rotation = Quaternion.identity;
-    }
+
+    body.rotation = Quaternion.Lerp(body.rotation, targetQuat, 0.1f);
   }
 
-  private void HandleBody()
-  {
-  }
 
   private void handleLooking()
   {
@@ -180,14 +179,19 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
       }
     }
-    else if (!previousSpaceDown && spaceDown && IsWallRunning(out var wallHit))
+    else if (!previousSpaceDown && spaceDown && IsWallRunning(out var wallHit) && latestWallJumpCollider != wallHit.collider)
     {
-      rb.AddForce((wallHit.normal).normalized * jumpPower * 2, ForceMode.VelocityChange);
+      rb.AddForce((wallHit.normal * 2 + Vector3.up).normalized * jumpPower, ForceMode.VelocityChange);
       if (wallHit.transform.TryGetComponent<Rigidbody>(out var groundRb))
       {
         // This will handle jumping from moving platform
         rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
       }
+      latestWallJumpCollider = wallHit.collider;
+    }
+    else if (IsGrounded(out hit))
+    {
+      latestWallJumpCollider = null;
     }
 
     previousSpaceDown = spaceDown;
@@ -195,19 +199,19 @@ public class PlayerController : MonoBehaviour
 
   private bool IsGrounded(out RaycastHit hit)
   {
-    return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.1f); 
+    return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.1f);
   }
 
   private bool IsWallRunning(out RaycastHit hit)
   {
     hit = new RaycastHit();
     return
-      IsControlling &&
       !IsGrounded(out var groundHit) &&
-     (Physics.Raycast(transform.position, Vector3.left, out hit, 0.6f) ||
-      Physics.Raycast(transform.position, Vector3.right, out hit, 0.6f) ||
-      Physics.Raycast(transform.position, Vector3.forward, out hit, 0.6f) ||
-      Physics.Raycast(transform.position, Vector3.back, out hit, 0.6f));
+     (Physics.Raycast(transform.position, head.transform.localRotation * Vector3.left, out hit, 0.6f) &&
+      hit.collider != latestWallJumpCollider ||
+      Physics.Raycast(transform.position, head.transform.localRotation * Vector3.right, out hit, 0.6f) &&
+      hit.collider != latestWallJumpCollider);
+
   }
 
   private void HandleKick()
