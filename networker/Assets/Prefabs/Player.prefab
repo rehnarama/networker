@@ -168,7 +168,7 @@ MonoBehaviour:
   walkSpeed: 40
   lookSpeed: 250
   maxSpeed: 6
-  breakingFactor: 0.8
+  breakingFactor: 0.2
   lookSmoothing: 0.5
   jumpPower: 3
 --- !u!54 &1828143183752956990

@@ -41,6 +41,7 @@ public class PlayerController : MonoBehaviour
       }
     }
 
+
   }
 
 
@@ -119,8 +120,8 @@ public class PlayerController : MonoBehaviour
       rb.AddForce(dragForce, ForceMode.Acceleration);
     }
 
-    // If not moving, try to be still in xz-direction
-    if ((sidewards + forwards).sqrMagnitude < Mathf.Epsilon && IsGrounded())
+    // If not moving in air, try to be still in xz-direction
+    if ((sidewards + forwards).sqrMagnitude < Mathf.Epsilon)
     {
       rb.velocity -= new Vector3(
         rb.velocity.x,
