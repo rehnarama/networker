@@ -41,8 +41,8 @@ public class PlayerController : MonoBehaviour
     get
     {
       return
-        Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal") > Mathf.Epsilon ||
-        Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical") > Mathf.Epsilon;
+        Mathf.Abs(Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal")) > Mathf.Epsilon ||
+        Mathf.Abs(Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical")) > Mathf.Epsilon;
     }
   }
 
@@ -104,12 +104,17 @@ public class PlayerController : MonoBehaviour
     if (IsWallRunning(out var hit))
     {
       rb.AddForce(Physics.gravity * rb.mass * -0.5f); // Decrease gravity by 50%
+
+      body.rotation = Quaternion.FromToRotation(Vector3.up, (hit.normal + Vector3.up).normalized);
+    }
+    else
+    {
+      body.rotation = Quaternion.identity;
     }
   }
 
   private void HandleBody()
   {
-    body.rotation = Quaternion.identity;
   }
 
   private void handleLooking()
@@ -177,7 +182,7 @@ public class PlayerController : MonoBehaviour
     }
     else if (!previousSpaceDown && spaceDown && IsWallRunning(out var wallHit))
     {
-      rb.AddForce((Vector3.up * 2 + wallHit.normal).normalized * jumpPower * 4, ForceMode.VelocityChange);
+      rb.AddForce((wallHit.normal).normalized * jumpPower * 2, ForceMode.VelocityChange);
       if (wallHit.transform.TryGetComponent<Rigidbody>(out var groundRb))
       {
         // This will handle jumping from moving platform
@@ -190,8 +195,7 @@ public class PlayerController : MonoBehaviour
 
   private bool IsGrounded(out RaycastHit hit)
   {
-    float distanceToFloor = 1f;
-    return Physics.Raycast(transform.position, -Vector3.up, out hit, distanceToFloor + 0.1f); // Just small diff
+    return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.1f); 
   }
 
   private bool IsWallRunning(out RaycastHit hit)
@@ -199,10 +203,11 @@ public class PlayerController : MonoBehaviour
     hit = new RaycastHit();
     return
       IsControlling &&
-     (Physics.Raycast(transform.position, Vector3.left, out hit, 0.5f) ||
-      Physics.Raycast(transform.position, Vector3.right, out hit, 0.5f) ||
-      Physics.Raycast(transform.position, Vector3.forward, out hit, 0.5f) ||
-      Physics.Raycast(transform.position, Vector3.back, out hit, 0.5f));
+      !IsGrounded(out var groundHit) &&
+     (Physics.Raycast(transform.position, Vector3.left, out hit, 0.6f) ||
+      Physics.Raycast(transform.position, Vector3.right, out hit, 0.6f) ||
+      Physics.Raycast(transform.position, Vector3.forward, out hit, 0.6f) ||
+      Physics.Raycast(transform.position, Vector3.back, out hit, 0.6f));
   }
 
   private void HandleKick()
