@@ -99,6 +99,21 @@ namespace Network
       }
     }
 
+    public static MultiPlayerInput PreviousInput
+    {
+      get
+      {
+        if (IsServer)
+        {
+          return Server.PreviousPlayerInputs;
+        }
+        else
+        {
+          return Client.PreviousPlayerInputs;
+        }
+      }
+    }
+
     public static int PlayerId
     {
       get

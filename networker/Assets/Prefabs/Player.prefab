@@ -181,12 +181,13 @@ MonoBehaviour:
   camera: {fileID: 5220180258582332237}
   body: {fileID: 6462049078108590140}
   head: {fileID: 1048135086984995689}
-  walkSpeed: 40
+  walkSpeed: 20
   lookSpeed: 250
   maxSpeed: 9
   breakingFactor: 0.3
   lookSmoothing: 0.5
   jumpPower: 8
+  kickPower: 20
 --- !u!54 &1828143183752956990
 Rigidbody:
   m_ObjectHideFlags: 0

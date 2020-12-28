@@ -50,6 +50,7 @@ namespace Network.Physics
 
     private Dictionary<int, PriorityBody> idPriorityMap = new Dictionary<int, PriorityBody>();
 
+    public MultiPlayerInput PreviousPlayerInputs { get; private set; } = MultiPlayerInput.Create();
     public MultiPlayerInput PlayerInputs
     {
       get
@@ -151,7 +152,8 @@ namespace Network.Physics
 
       frameCount++;
 
-      bufferedInputs.Enqueue(bufferedInputs.Last().Copy()); // Create a copy
+      PreviousPlayerInputs = bufferedInputs.Last();
+      bufferedInputs.Enqueue(PreviousPlayerInputs.Copy()); // Create a copy
       while (bufferedInputs.Count > MAX_INPUTS)
       {
         bufferedInputs.Dequeue();

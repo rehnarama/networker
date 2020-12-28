@@ -30,6 +30,7 @@ namespace Network.Physics
     private Dictionary<int, PhysicsState[]> bufferedPhysicsStates = new Dictionary<int, PhysicsState[]>();
     private Dictionary<int, MultiPlayerInput> bufferedInputs = new Dictionary<int, MultiPlayerInput>();
 
+    public MultiPlayerInput PreviousPlayerInputs { get; private set; } = MultiPlayerInput.Create();
     public MultiPlayerInput PlayerInputs { get; private set; } = MultiPlayerInput.Create();
     public PlayerInput PlayerInput { get; private set; } = PlayerInput.Create();
     public int PlayerId { get; private set; } = -1;
@@ -129,7 +130,7 @@ namespace Network.Physics
 
     private void HandlePhysicsFrame(PhysicsState[] states, MultiPlayerInput input)
     {
-
+      PreviousPlayerInputs = PlayerInputs;
       PlayerInputs = input;
 
       // By overwriting with local input, we avoid jitter if server

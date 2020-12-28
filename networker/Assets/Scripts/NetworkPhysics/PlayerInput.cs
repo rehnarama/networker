@@ -22,6 +22,15 @@ namespace Network.Physics
       };
     }
 
+    public static PlayerInput Create(Dictionary<int, bool> digitalInput, Dictionary<int, float> analogInput)
+    {
+      return new PlayerInput()
+      {
+        _DigitalInput = new Dictionary<int, bool>(digitalInput),
+        _AnalogInput = new Dictionary<int, float>(analogInput)
+      };
+    }
+
     public bool GetDigital(int id)
     {
       if (DigitalInput.TryGetValue(id, out var value))
@@ -92,6 +101,11 @@ namespace Network.Physics
           input.AnalogInput[analogKeys[i]] = analogValues[i];
         }
       }
+    }
+
+    public PlayerInput Copy()
+    {
+      return Create(DigitalInput, AnalogInput);
     }
   }
 }

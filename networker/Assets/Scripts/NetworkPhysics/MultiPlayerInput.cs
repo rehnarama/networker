@@ -20,9 +20,15 @@ namespace Network.Physics
 
     public static MultiPlayerInput Create(Dictionary<int, PlayerInput> inputs)
     {
+      var inputsCopy = new Dictionary<int, PlayerInput>();
+      foreach (var kvp in inputs)
+      {
+        inputsCopy[kvp.Key] = kvp.Value.Copy();
+      }
+
       return new MultiPlayerInput()
       {
-        _Inputs = new Dictionary<int, PlayerInput>(inputs)
+        _Inputs = inputsCopy
       };
     }
 

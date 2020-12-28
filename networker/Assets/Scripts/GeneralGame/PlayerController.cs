@@ -33,9 +33,11 @@ public class PlayerController : MonoBehaviour
   [Tooltip("From 0-Infinity. 0 is no smoothing, Infinity is barely movable.")]
   public float lookSmoothing = 0.5f;
   public float jumpPower = 2f;
+  public float kickPower = 5f;
 
   private bool previousSpaceDown = false;
   private Collider latestWallJumpCollider = null;
+
 
   public bool IsControlling
   {
@@ -94,6 +96,8 @@ public class PlayerController : MonoBehaviour
     handleWalking();
 
     HandleJumping();
+
+    HandleKick();
   }
 
 
@@ -216,8 +220,35 @@ public class PlayerController : MonoBehaviour
 
   private void HandleKick()
   {
+    var previousLeftMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
     var leftMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
 
-    // Physics.BoxCast
+    var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
+    var direction = rotation * Vector3.forward;
+    var rays = new Ray[3] {
+      new Ray(transform.position, direction),
+      new Ray(transform.position + Vector3.up, direction),
+      new Ray(transform.position + Vector3.up * 2, direction),
+    };
+
+    if (!previousLeftMouseDown && leftMouseDown)
+    {
+      HashSet<Rigidbody> bodiesFound = new HashSet<Rigidbody>();
+      foreach (var ray in rays)
+      {
+        if (Physics.Raycast(ray, out var hit, 2f))
+        {
+          if (hit.collider.TryGetComponent<Rigidbody>(out var hitBody))
+          {
+            bodiesFound.Add(hitBody);
+          }
+        }
+      }
+
+      foreach (var hitBody in bodiesFound)
+      {
+        hitBody.AddForce((direction + Vector3.up).normalized * kickPower, ForceMode.VelocityChange);
+      }
+    }
   }
 }

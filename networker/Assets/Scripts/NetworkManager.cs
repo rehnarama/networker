@@ -36,7 +36,7 @@ public class NetworkManager : MonoBehaviour
       {
         foreach (var axis in registredAxises)
         {
-          NetworkState.Client.PlayerInput.SetAnalog(axis, Input.GetAxis(axis));
+          NetworkState.Client.PlayerInput.SetAnalog(axis, Input.GetAxisRaw(axis));
         }
       }
     }
@@ -112,13 +112,13 @@ public class NetworkManager : MonoBehaviour
   {
     if (NetworkState.IsServer)
     {
-      NetworkState.Server.ProcessPackets();
       NetworkState.Server.Tick();
+      NetworkState.Server.ProcessPackets();
     }
     if (NetworkState.IsClient)
     {
-      NetworkState.Client.ProcessPackets();
       NetworkState.Client.Tick();
+      NetworkState.Client.ProcessPackets();
     }
   }
 
