@@ -31,7 +31,6 @@ public class CharacterCameraController : MonoBehaviour
     {
       if (hit.collider.gameObject.tag == "Terrain")
       {
-        Debug.Log("Hit " + hit.collider.gameObject.name);
         targetPosition = head.transform.position + head.transform.rotation * (Vector3.back * hit.distance * 0.95f);
       }
     }
