@@ -34,8 +34,7 @@ namespace Network.Physics
     public PlayerInput PlayerInput { get; private set; } = PlayerInput.Create();
     public int PlayerId { get; private set; } = -1;
 
-    public delegate void OnEventHandler(IEvent e);
-    public event OnEventHandler OnEvent;
+    public event PhysicsServer.OnEventHandler OnEvent;
 
     public PhysicsClient(Client client)
     {

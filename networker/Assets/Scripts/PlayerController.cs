@@ -5,10 +5,19 @@ using Network.Physics;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(NetworkedBody))]
 public class PlayerController : MonoBehaviour
 {
   private Rigidbody rb;
   private NetworkedBody nb;
+
+  public int PlayerId
+  {
+    get
+    {
+      return nb.playerAuthority;
+    }
+  }
 
 
   public new Camera camera;
@@ -121,7 +130,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // If not moving in air, try to be still in xz-direction
-    if ((sidewards + forwards).sqrMagnitude < Mathf.Epsilon)
+    if ((sidewards + forwards).sqrMagnitude < Mathf.Epsilon && IsGrounded(out var _))
     {
       rb.velocity -= new Vector3(
         rb.velocity.x,
@@ -135,16 +144,21 @@ public class PlayerController : MonoBehaviour
   private void HandleJumping()
   {
     var spaceDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Space);
-    if (spaceDown && IsGrounded())
+    if (spaceDown && IsGrounded(out var hit))
     {
       rb.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
+      if (hit.transform.TryGetComponent<Rigidbody>(out var groundRb))
+      {
+        // This will handle jumping from moving platform
+        rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
+      }
     }
   }
 
-  private bool IsGrounded()
+  private bool IsGrounded(out RaycastHit hit)
   {
     float distanceToFloor = 1f;
-    return Physics.Raycast(transform.position, -Vector3.up, distanceToFloor + 0.1f); // Just small diff
+    return Physics.Raycast(transform.position, -Vector3.up, out hit, distanceToFloor + 0.1f); // Just small diff
   }
 
   private void HandleKick()

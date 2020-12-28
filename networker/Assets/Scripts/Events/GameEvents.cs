@@ -7,6 +7,7 @@ namespace Events
   {
     Instantiate,
     LoadScene,
+    Death
   }
 
   public interface IGameEvent : IEvent

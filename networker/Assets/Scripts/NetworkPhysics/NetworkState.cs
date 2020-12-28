@@ -18,6 +18,31 @@ namespace Network
 
     public static EventSerializer Serializer { get; private set; }
 
+    public static event PhysicsServer.OnEventHandler OnEvent {
+      add
+      {
+        if (NetworkState.IsServer)
+        {
+          NetworkState.Server.OnEvent += value;
+        }
+        else
+        {
+          NetworkState.Client.OnEvent += value;
+        }
+      }
+      remove
+      {
+        if (NetworkState.IsServer)
+        {
+          NetworkState.Server.OnEvent -= value;
+        }
+        else
+        {
+          NetworkState.Client.OnEvent -= value;
+        }
+      }
+    }
+
     public static void StartPhysicsServer(IPacketSerializer packetSerializer, EventSerializer eventSerializer = null, int port = Config.SERVER_PORT)
     {
       Serializer = eventSerializer;

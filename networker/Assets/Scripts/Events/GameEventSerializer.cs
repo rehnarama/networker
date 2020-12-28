@@ -44,6 +44,9 @@ namespace Events
           case GameEvents.LoadScene:
             e = new LoadSceneEvent();
             break;
+          case GameEvents.Death:
+            e = new DeathEvent();
+            break;
         }
 
         e.EventNumber = eventNumber;
