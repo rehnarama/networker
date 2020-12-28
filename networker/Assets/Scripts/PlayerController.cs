@@ -82,8 +82,8 @@ public class PlayerController : MonoBehaviour
 
   private void handleLooking()
   {
-    var mouseX = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(3);
-    var mouseY = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(4);
+    var mouseX = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Mouse X");
+    var mouseY = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Mouse Y");
 
     float rotationHoriz = mouseX * lookSpeed * Time.deltaTime;
 
@@ -100,8 +100,8 @@ public class PlayerController : MonoBehaviour
 
   private void handleWalking()
   {
-    var sidewards = Vector3.right * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(1);
-    var forwards = Vector3.forward * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog(2);
+    var sidewards = Vector3.right * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal");
+    var forwards = Vector3.forward * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical");
     var force = (sidewards + forwards) * walkSpeed;
 
     var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
@@ -148,7 +148,7 @@ public class PlayerController : MonoBehaviour
 
   private void HandleKick()
   {
-    var leftMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital(0);
+    var leftMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
 
     // Physics.BoxCast
   }

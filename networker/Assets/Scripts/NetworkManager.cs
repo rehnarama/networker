@@ -10,6 +10,7 @@ public class NetworkManager : MonoBehaviour
   private static NetworkManager instance;
 
   public KeyCode[] registredKeys;
+  public string[] registredAxises;
   public UnityEvent<IGameEvent> onEvent;
 
   public NetworkedBody instantiateObject;
@@ -31,16 +32,13 @@ public class NetworkManager : MonoBehaviour
         }
       }
 
-      NetworkState.Client.PlayerInput.SetDigital(
-        0,
-        Input.GetMouseButton(0)
-      );
-
-      NetworkState.Client.PlayerInput.SetAnalog(1, Input.GetAxis("Horizontal"));
-      NetworkState.Client.PlayerInput.SetAnalog(2, Input.GetAxis("Vertical"));
-
-      NetworkState.Client.PlayerInput.SetAnalog(3, Input.GetAxis("Mouse X"));
-      NetworkState.Client.PlayerInput.SetAnalog(4, Input.GetAxis("Mouse Y"));
+      if (registredAxises != null)
+      {
+        foreach (var axis in registredAxises)
+        {
+          NetworkState.Client.PlayerInput.SetAnalog(axis, Input.GetAxis(axis));
+        }
+      }
     }
   }
 

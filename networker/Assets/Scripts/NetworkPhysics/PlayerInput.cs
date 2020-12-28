@@ -55,6 +55,14 @@ namespace Network.Physics
     {
       AnalogInput[id] = value;
     }
+    public void SetAnalog(string id, float value)
+    {
+      SetAnalog(id.GetHashCode(), value);
+    }
+    public float GetAnalog(string id)
+    {
+      return GetAnalog(id.GetHashCode());
+    }
 
     public static void Serialize(Serializer serializer, ref PlayerInput input)
     {
