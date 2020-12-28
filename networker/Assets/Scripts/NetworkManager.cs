@@ -42,22 +42,6 @@ public class NetworkManager : MonoBehaviour
       NetworkState.Client.PlayerInput.SetAnalog(3, Input.GetAxis("Mouse X"));
       NetworkState.Client.PlayerInput.SetAnalog(4, Input.GetAxis("Mouse Y"));
     }
-
-    if (NetworkState.IsServer)
-    {
-      if (Input.GetKeyDown(KeyCode.F1))
-      {
-        foreach (var player in NetworkState.Server.Players.Values)
-        {
-          NetworkState.Server.InvokeEvent(new InstantiateEvent(
-            new Vector3(0, 10, 0),
-            InstantiateEvent.InstantiateTypes.Player,
-            player,
-            NetworkState.Server.FindNextFreeBodyId()
-          ));
-        }
-      }
-    }
   }
 
   private void Start()

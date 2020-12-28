@@ -5,7 +5,7 @@ using Network;
 using Network.Physics;
 using UnityEngine;
 
-public class PhysicsServerState : MonoBehaviour
+public class NetworkDiagnostics : MonoBehaviour
 {
   public TMPro.TMP_Text text;
 
