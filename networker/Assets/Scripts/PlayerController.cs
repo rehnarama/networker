@@ -34,6 +34,18 @@ public class PlayerController : MonoBehaviour
   public float lookSmoothing = 0.5f;
   public float jumpPower = 2f;
 
+  private bool previousSpaceDown = false;
+
+  public bool IsControlling
+  {
+    get
+    {
+      return
+        Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal") > Mathf.Epsilon ||
+        Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical") > Mathf.Epsilon;
+    }
+  }
+
   void Start()
   {
 
@@ -83,6 +95,16 @@ public class PlayerController : MonoBehaviour
     HandleJumping();
 
     HandleBody();
+
+    HandleWallRunning();
+  }
+
+  private void HandleWallRunning()
+  {
+    if (IsWallRunning(out var hit))
+    {
+      rb.AddForce(Physics.gravity * rb.mass * -0.5f); // Decrease gravity by 50%
+    }
   }
 
   private void HandleBody()
@@ -144,7 +166,7 @@ public class PlayerController : MonoBehaviour
   private void HandleJumping()
   {
     var spaceDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Space);
-    if (spaceDown && IsGrounded(out var hit))
+    if (spaceDown && (IsGrounded(out var hit)))
     {
       rb.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
       if (hit.transform.TryGetComponent<Rigidbody>(out var groundRb))
@@ -153,12 +175,34 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
       }
     }
+    else if (!previousSpaceDown && spaceDown && IsWallRunning(out var wallHit))
+    {
+      rb.AddForce((Vector3.up * 2 + wallHit.normal).normalized * jumpPower * 4, ForceMode.VelocityChange);
+      if (wallHit.transform.TryGetComponent<Rigidbody>(out var groundRb))
+      {
+        // This will handle jumping from moving platform
+        rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
+      }
+    }
+
+    previousSpaceDown = spaceDown;
   }
 
   private bool IsGrounded(out RaycastHit hit)
   {
     float distanceToFloor = 1f;
     return Physics.Raycast(transform.position, -Vector3.up, out hit, distanceToFloor + 0.1f); // Just small diff
+  }
+
+  private bool IsWallRunning(out RaycastHit hit)
+  {
+    hit = new RaycastHit();
+    return
+      IsControlling &&
+     (Physics.Raycast(transform.position, Vector3.left, out hit, 0.5f) ||
+      Physics.Raycast(transform.position, Vector3.right, out hit, 0.5f) ||
+      Physics.Raycast(transform.position, Vector3.forward, out hit, 0.5f) ||
+      Physics.Raycast(transform.position, Vector3.back, out hit, 0.5f));
   }
 
   private void HandleKick()
