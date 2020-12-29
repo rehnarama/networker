@@ -128,9 +128,7 @@ public class NetworkManager : MonoBehaviour
           networkedBody = Instantiate(playerPrefab, iEvent.Position, Quaternion.identity);
         }
         networkedBody.playerAuthority = iEvent.PlayerAuthority;
-        networkedBody.id = iEvent.BodyId;
 
-        networkedBody.RegisterBody();
         break;
       case GameEvents.LoadScene:
         var lsEvent = (LoadSceneEvent)gameEvent;

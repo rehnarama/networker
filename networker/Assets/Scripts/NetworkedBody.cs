@@ -11,20 +11,25 @@ public class NetworkedBody : MonoBehaviour
   public int id = 0;
 
   private static int idCounter = 1;
-  private static HashSet<int> takenIds = new HashSet<int>();
 
   public Rigidbody body;
 
-  public void Awake()
+  public void Start()
   {
     if (id != 0)
     {
+      RegisterBody();
+    }
+    else
+    {
+      id = idCounter + 1;
       RegisterBody();
     }
   }
 
   public void RegisterBody()
   {
+    idCounter = Mathf.Max(idCounter, id);
     body = GetComponent<Rigidbody>();
     NetworkState.RegisterBody(id, this);
   }

@@ -18,7 +18,8 @@ namespace Network
 
     public static EventSerializer Serializer { get; private set; }
 
-    public static event PhysicsServer.OnEventHandler OnEvent {
+    public static event PhysicsServer.OnEventHandler OnEvent
+    {
       add
       {
         if (NetworkState.IsServer)
@@ -69,6 +70,18 @@ namespace Network
         Client.RegisterBody(id, networkedBody);
       }
     }
+
+    // internal static int FindNextFreeBodyId()
+    // {
+    //   if (IsServer)
+    //   {
+    //     return Server.FindNextFreeBodyId();
+    //   }
+    //   else
+    //   {
+    //     return Client.FindNextFreeBodyId();
+    //   }
+    // }
 
     public static void StartPhysicsClient(IPEndPoint serverEndpoint, IPacketSerializer packetSerializer, Events.EventSerializer eventSerializer = null, int port = Config.CLIENT_PORT)
     {

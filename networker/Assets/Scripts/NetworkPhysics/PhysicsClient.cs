@@ -23,6 +23,7 @@ namespace Network.Physics
     private bool buffering = true;
     private float lastSentJoinPacket;
     private bool hasJoined = false;
+    private int bodyIdCounter = 0;
 
     private Dictionary<int, NetworkedBody> networkBodies = new Dictionary<int, NetworkedBody>();
     private Dictionary<int, NetworkedBody> authorityBodies = new Dictionary<int, NetworkedBody>();
@@ -62,7 +63,13 @@ namespace Network.Physics
 
     public int FindNextFreeBodyId()
     {
-      return networkBodies.Keys.Aggregate((largest, next) => Math.Max(largest, next)) + 1;
+      int idCandidate = bodyIdCounter;
+      while (networkBodies.ContainsKey(idCandidate))
+      {
+        idCandidate++;
+      }
+      bodyIdCounter = idCandidate + 1;
+      return idCandidate;
     }
 
     private void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)
@@ -108,6 +115,7 @@ namespace Network.Physics
           break;
       }
     }
+
 
     internal void ProcessPackets()
     {
