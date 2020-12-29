@@ -9,6 +9,8 @@ public class LevelSpawner : MonoBehaviour
 {
   public Vector3[] spawnPoints;
 
+  private NetworkManager networkManager;
+
   private void Awake()
   {
     if (NetworkState.IsServer)
@@ -24,8 +26,19 @@ public class LevelSpawner : MonoBehaviour
         ));
       }
     }
+
   }
 
+  private void OnEnable()
+  {
+    networkManager = FindObjectOfType<NetworkManager>();
+    networkManager.onEvent.AddListener(HandleOnEvent);
+  }
+
+  private void OnDisable()
+  {
+    networkManager.onEvent.RemoveListener(HandleOnEvent);
+  }
 
   public void HandleOnEvent(IEvent e)
   {

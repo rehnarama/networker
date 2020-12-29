@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Network.Packets
 {
@@ -15,9 +14,9 @@ namespace Network.Packets
 
     public PlayerInput input;
 
-    private Dictionary<int, Vector3> _AuthorityPositions;
-    public Dictionary<int, Vector3> AuthorityPositions { get => _AuthorityPositions; set => _AuthorityPositions = value; }
-    public InputPacket(PlayerInput input, Dictionary<int, Vector3> authorityPositions)
+    private PhysicsState[] _AuthorityPositions;
+    public PhysicsState[] AuthorityPositions { get => _AuthorityPositions; set => _AuthorityPositions = value; }
+    public InputPacket(PlayerInput input, PhysicsState[] authorityPositions)
     {
       this.input = input;
       this._AuthorityPositions = authorityPositions;
@@ -27,19 +26,18 @@ namespace Network.Packets
     {
       PlayerInput.Serialize(serializer, ref input);
 
-      var positionsKeys = _AuthorityPositions?.Keys?.ToArray();
-      var positionsValues = _AuthorityPositions?.Values?.Select(v3 => v3.ToFloatArray()).ToArray();
+      int length = _AuthorityPositions?.Length ?? 0;
 
-      serializer.SerializeIntArray(ref positionsKeys);
-      serializer.SerializeVector3Array(ref positionsValues);
+      serializer.SerializeInt(ref length);
 
       if (serializer.IsReader)
       {
-        _AuthorityPositions = new Dictionary<int, Vector3>();
-        for (int i = 0; i < positionsKeys.Length; i++)
-        {
-          _AuthorityPositions[positionsKeys[i]] = positionsValues[i].ToVector3();
-        }
+        _AuthorityPositions = new PhysicsState[length];
+      }
+
+      for (int i = 0; i < length; i++)
+      {
+        PhysicsState.Serialize(serializer, ref _AuthorityPositions[i]);
       }
     }
   }

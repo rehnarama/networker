@@ -98,7 +98,7 @@ namespace Network.Physics
       {
         idCandidate++;
       }
-      bodyIdCounter++;
+      bodyIdCounter = idCandidate + 1;
       return idCandidate;
     }
 
@@ -236,14 +236,17 @@ namespace Network.Physics
 
         foreach (var authorityPosition in inputPacket.AuthorityPositions)
         {
-          if (idPriorityMap.TryGetValue(authorityPosition.Key, out var pb))
+          if (idPriorityMap.TryGetValue(authorityPosition.Id, out var pb))
           {
             if (
               pb.Body.playerAuthority == playerId &&
-              Vector3.Distance(pb.Body.body.position, authorityPosition.Value) < PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
+              Vector3.Distance(pb.Body.body.position, authorityPosition.Position) < PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
             )
             {
-              pb.Body.body.position = authorityPosition.Value;
+              pb.Body.body.position = authorityPosition.Position;
+              pb.Body.body.rotation = authorityPosition.Rotation;
+              pb.Body.body.velocity = authorityPosition.Velocity;
+              pb.Body.body.angularVelocity = authorityPosition.AngularVelocity;
             }
           }
         }

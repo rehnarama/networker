@@ -178,13 +178,17 @@ namespace Network.Physics
 
     private void TickInput()
     {
-      Dictionary<int, Vector3> authorityPositions = new Dictionary<int, Vector3>();
-      foreach (var kvp in authorityBodies)
-      {
-        authorityPositions[kvp.Key] = kvp.Value.body.position;
-      }
+      var authorityPositions = from body in authorityBodies
+                               select new PhysicsState()
+                               {
+                                 Id = body.Key,
+                                 Position = body.Value.body.position,
+                                 Velocity = body.Value.body.velocity,
+                                 Rotation = body.Value.body.rotation,
+                                 AngularVelocity = body.Value.body.angularVelocity
+                               };
 
-      client.Send(new InputPacket(PlayerInput, authorityPositions));
+      client.Send(new InputPacket(PlayerInput, authorityPositions.ToArray()));
     }
 
     private void TickPhysics()
