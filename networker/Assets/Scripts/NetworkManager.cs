@@ -4,6 +4,7 @@ using Network;
 using Network.Physics;
 using Events;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -16,6 +17,10 @@ public class NetworkManager : MonoBehaviour
   public NetworkedBody instantiateObject;
 
   public NetworkedBody playerPrefab;
+
+
+  private Queue<IGameEvent> bufferedEvents = new Queue<IGameEvent>();
+  private bool waitingForSceneLoad = false;
 
   private void Update()
   {
@@ -40,6 +45,8 @@ public class NetworkManager : MonoBehaviour
         }
       }
     }
+
+    ProcessBufferedEvents();
   }
 
   private void Start()
@@ -62,6 +69,13 @@ public class NetworkManager : MonoBehaviour
     {
       NetworkState.Client.OnEvent += HandleOnEvent;
     }
+
+    SceneManager.sceneLoaded += HandleOnSceneLoad;
+  }
+
+  private void HandleOnSceneLoad(Scene arg0, LoadSceneMode arg1)
+  {
+    waitingForSceneLoad = false;
   }
 
   private void OnDestroy()
@@ -74,11 +88,30 @@ public class NetworkManager : MonoBehaviour
     {
       NetworkState.Client.OnEvent -= HandleOnEvent;
     }
+
+    SceneManager.sceneLoaded -= HandleOnSceneLoad;
+  }
+
+  private void ProcessBufferedEvents()
+  {
+    int count = bufferedEvents.Count;
+    for (int i = 0; i < count; i++)
+    {
+      var e = bufferedEvents.Dequeue();
+      HandleOnEvent(e);
+    }
   }
 
   private void HandleOnEvent(Network.Events.IEvent e)
   {
     var gameEvent = (IGameEvent)e;
+
+    if (waitingForSceneLoad)
+    {
+      bufferedEvents.Enqueue(gameEvent);
+      return;
+    }
+
     onEvent?.Invoke(gameEvent);
 
     switch (gameEvent.Type)
@@ -102,6 +135,7 @@ public class NetworkManager : MonoBehaviour
       case GameEvents.LoadScene:
         var lsEvent = (LoadSceneEvent)gameEvent;
         SceneManager.LoadScene(lsEvent.Scene);
+        waitingForSceneLoad = true;
         break;
     }
   }
@@ -120,6 +154,7 @@ public class NetworkManager : MonoBehaviour
       NetworkState.Client.Tick();
       NetworkState.Client.ProcessPackets();
     }
+
   }
 
   private void OnApplicationQuit()

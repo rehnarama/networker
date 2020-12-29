@@ -24,16 +24,10 @@ public class LevelSpawner : MonoBehaviour
         ));
       }
     }
-
-    NetworkState.OnEvent += HandleOnEvent;
   }
 
-  private void OnDestroy()
-  {
-    NetworkState.OnEvent -= HandleOnEvent;
-  }
 
-  private void HandleOnEvent(IEvent e)
+  public void HandleOnEvent(IEvent e)
   {
     var gameEvent = (IGameEvent)e;
     if (NetworkState.IsServer)
