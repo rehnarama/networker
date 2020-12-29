@@ -301,6 +301,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: NetworkDiagnostics
       objectReference: {fileID: 0}
+    - target: {fileID: 6448237186909404443, guid: 419c0e3493ffa8f4798266e0790b7b2b,
+        type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee,
+        type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 419c0e3493ffa8f4798266e0790b7b2b, type: 3}
 --- !u!224 &158080626 stripped
@@ -376,8 +382,8 @@ Camera:
   m_GameObject: {fileID: 673804073}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.1792453, g: 0.1792453, b: 0.1792453, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
