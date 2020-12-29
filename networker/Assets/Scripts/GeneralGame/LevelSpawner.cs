@@ -31,13 +31,12 @@ public class LevelSpawner : MonoBehaviour
 
   private void OnEnable()
   {
-    networkManager = FindObjectOfType<NetworkManager>();
-    networkManager.onEvent.AddListener(HandleOnEvent);
+    NetworkManager.Instance.onEvent.AddListener(HandleOnEvent);
   }
 
   private void OnDisable()
   {
-    networkManager.onEvent.RemoveListener(HandleOnEvent);
+    NetworkManager.Instance.onEvent.RemoveListener(HandleOnEvent);
   }
 
   public void HandleOnEvent(IEvent e)

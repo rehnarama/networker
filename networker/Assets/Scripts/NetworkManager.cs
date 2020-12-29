@@ -9,6 +9,13 @@ using System.Collections.Generic;
 public class NetworkManager : MonoBehaviour
 {
   private static NetworkManager instance;
+  public static NetworkManager Instance
+  {
+    get
+    {
+      return instance;
+    }
+  }
 
   public KeyCode[] registredKeys;
   public string[] registredAxises;
