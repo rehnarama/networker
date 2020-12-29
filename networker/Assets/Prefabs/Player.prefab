@@ -181,6 +181,7 @@ MonoBehaviour:
   camera: {fileID: 5220180258582332237}
   body: {fileID: 1506339434944518014}
   head: {fileID: 70473628946160166}
+  bomb: {fileID: 6833134468846496393, guid: b6f4f3fbb4b3f354fbe3c898772d52e8, type: 3}
   walkSpeed: 20
   lookSpeed: 250
   maxSpeed: 9

@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
   public new Camera camera;
   public Transform body;
   public Transform head;
-
+    public GameObject bomb;
 
   public float walkSpeed = 30f;
   public float lookSpeed = 250f;
@@ -98,6 +98,8 @@ public class PlayerController : MonoBehaviour
     HandleJumping();
 
     HandleKick();
+
+    HandleBomb();
   }
 
 
@@ -251,4 +253,24 @@ public class PlayerController : MonoBehaviour
       }
     }
   }
+    private void HandleBomb()
+    {
+        var previousRightMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
+
+        var rightMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
+
+
+        if (rightMouseDown&&!previousRightMouseDown)
+        {
+            var spawnpoint = new Vector3 (transform.position.x+.7f,transform.position.y+2, transform.position.z+.5f);
+            GameObject clone;
+            clone= Instantiate(bomb, spawnpoint , Quaternion.identity);
+
+            
+
+
+        }
+
+
+    }
 }
