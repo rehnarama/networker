@@ -15,4 +15,9 @@ public class BombScript : MonoBehaviour
     {
         transform.Translate(Vector3.forward * 100 * Time.deltaTime);
     }
+    //void OnCollisionEnter(Collision collision)
+    //{
+    //    print("test");
+    //    Destroy(gameObject);
+    //}
 }
