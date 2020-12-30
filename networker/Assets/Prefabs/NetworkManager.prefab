@@ -52,7 +52,10 @@ MonoBehaviour:
   onEvent:
     m_PersistentCalls:
       m_Calls: []
-  instantiateObject: {fileID: 464743150964666309, guid: be410f7bc6c2963489f90e5c03b88559,
-    type: 3}
-  playerPrefab: {fileID: 1828143183752956991, guid: 0d7b1f7c0c6eab2449bb4662ff9fa5b4,
-    type: 3}
+  instantiateMap:
+  - type: 0
+    prefab: {fileID: 1828143183752956991, guid: 0d7b1f7c0c6eab2449bb4662ff9fa5b4,
+      type: 3}
+  - type: 2
+    prefab: {fileID: 3509717889786507154, guid: b6f4f3fbb4b3f354fbe3c898772d52e8,
+      type: 3}

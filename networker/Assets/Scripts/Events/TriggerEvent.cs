@@ -8,7 +8,8 @@ namespace Events
   {
     public enum Trigger
     {
-      Kick
+      Kick,
+      Bomb
     }
 
     public int EventNumber { get; set; }

@@ -5,9 +5,17 @@ using Network.Physics;
 using Events;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using System;
 
 public class NetworkManager : MonoBehaviour
 {
+  [Serializable]
+  public struct InstantiatePair
+  {
+    public InstantiateEvent.InstantiateTypes type;
+    public NetworkedBody prefab;
+  }
+
   private static NetworkManager instance;
   public static NetworkManager Instance
   {
@@ -21,9 +29,11 @@ public class NetworkManager : MonoBehaviour
   public string[] registredAxises;
   public UnityEvent<IGameEvent> onEvent;
 
-  public NetworkedBody instantiateObject;
 
-  public NetworkedBody playerPrefab;
+  public InstantiatePair[] instantiateMap;
+  private Dictionary<InstantiateEvent.InstantiateTypes, NetworkedBody> instantiatePrefabMap = new Dictionary<InstantiateEvent.InstantiateTypes, NetworkedBody>();
+
+
 
 
   private Queue<IGameEvent> bufferedEvents = new Queue<IGameEvent>();
@@ -67,6 +77,11 @@ public class NetworkManager : MonoBehaviour
 
     instance = this;
     DontDestroyOnLoad(gameObject);
+
+    foreach (var pair in instantiateMap)
+    {
+      instantiatePrefabMap[pair.type] = pair.prefab;
+    }
 
     if (NetworkState.IsServer)
     {
@@ -125,14 +140,10 @@ public class NetworkManager : MonoBehaviour
     {
       case GameEvents.Instantiate:
         var iEvent = (InstantiateEvent)gameEvent;
-        NetworkedBody networkedBody;
-        if (iEvent.InstantiateType == InstantiateEvent.InstantiateTypes.Cube)
+        NetworkedBody networkedBody = Instantiate(instantiatePrefabMap[iEvent.InstantiateType], iEvent.Position, iEvent.Rotation);
+        if (iEvent.InstantiateType == InstantiateEvent.InstantiateTypes.Player)
         {
-          networkedBody = Instantiate(instantiateObject, iEvent.Position, Quaternion.identity);
-        }
-        else
-        {
-          networkedBody = Instantiate(playerPrefab, iEvent.Position, Quaternion.identity);
+          // Have to assign authority to the head as well in player case
           networkedBody.GetComponent<PlayerController>().head.GetComponent<NetworkedBody>().playerAuthority = iEvent.PlayerAuthority;
         }
         networkedBody.playerAuthority = iEvent.PlayerAuthority;

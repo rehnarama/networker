@@ -20,6 +20,7 @@ public class LevelSpawner : MonoBehaviour
       {
         NetworkState.Server.InvokeEvent(new InstantiateEvent(
           spawnPoints[(i++) % spawnPoints.Length],
+          Quaternion.identity,
           InstantiateEvent.InstantiateTypes.Player,
           player,
           NetworkState.Server.FindNextFreeBodyId()

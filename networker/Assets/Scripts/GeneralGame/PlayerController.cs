@@ -100,7 +100,13 @@ public class PlayerController : MonoBehaviour
         {
           HandleKick();
         }
+
+        if (te.trigger == TriggerEvent.Trigger.Bomb)
+        {
+          HandleBomb();
+        }
       }
+
     }
   }
 
@@ -125,17 +131,14 @@ public class PlayerController : MonoBehaviour
     HandleWallRunning();
     HandleLooking();
     HandleBody();
+    HandleTriggerBomb();
+    HandleTriggerKick();
   }
 
   void FixedUpdate()
   {
     HandleWalking();
-
     HandleJetPack();
-
-    HandleTriggerKick();
-
-    HandleBomb();
   }
 
 
@@ -322,20 +325,26 @@ public class PlayerController : MonoBehaviour
       }
     }
   }
+  private void HandleTriggerBomb()
+  {
+    if (nb.playerAuthority == NetworkState.Client?.PlayerId)
+    {
+      if (Input.GetKeyDown(KeyCode.Mouse1))
+      {
+        NetworkState.Client.InvokeClientEvent(new TriggerEvent(TriggerEvent.Trigger.Bomb));
+      }
+    }
+  }
+
   private void HandleBomb()
   {
-    var previousRightMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse1);
-
-    var rightMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse1);
-
-
-    if (rightMouseDown && !previousRightMouseDown)
+    if (NetworkState.IsServer)
     {
       var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
-      var spawnpoint = new Vector3(transform.position.x + .7f, transform.position.y + 2, transform.position.z + .5f);
-      GameObject clone;
-      clone = Instantiate(bomb, spawnpoint, rotation);
+      var spawnpoint =
+        new Vector3(transform.position.x, transform.position.y + 2, transform.position.z) +
+        head.transform.rotation * Vector3.forward * 2;
+      NetworkState.Server.InvokeEvent(new InstantiateEvent(spawnpoint, rotation, InstantiateEvent.InstantiateTypes.Bomb, -1));
     }
-
   }
 }
