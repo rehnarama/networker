@@ -188,7 +188,9 @@ MonoBehaviour:
   maxSpeed: 9
   breakingFactor: 50
   lookSmoothing: 0.5
-  jumpPower: 16
+  jumpPower: 8
+  jetpackPower: 50
+  maxJetpackDuration: 2
   kickPower: 20
 --- !u!54 &1828143183752956990
 Rigidbody:

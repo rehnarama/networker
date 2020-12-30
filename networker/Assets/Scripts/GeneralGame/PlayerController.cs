@@ -34,11 +34,12 @@ public class PlayerController : MonoBehaviour
 
   [Tooltip("From 0-Infinity. 0 is no smoothing, Infinity is barely movable.")]
   public float lookSmoothing = 0.5f;
-  public float jumpPower = 2f;
+  public float jumpPower = 8f;
+  public float jetpackPower = 50f;
+  private float jetpackFuelLeft;
+  public float maxJetpackDuration = 2f;
   public float kickPower = 5f;
 
-  private bool previousSpaceDown = false;
-  private Collider latestWallJumpCollider = null;
   private Quaternion wallRunningRotation = Quaternion.identity;
   private Quaternion groundRunningRotation = Quaternion.identity;
 
@@ -55,6 +56,7 @@ public class PlayerController : MonoBehaviour
 
   void Start()
   {
+    jetpackFuelLeft = maxJetpackDuration;
 
     rb = GetComponent<Rigidbody>();
     nb = GetComponent<NetworkedBody>();
@@ -129,7 +131,7 @@ public class PlayerController : MonoBehaviour
   {
     HandleWalking();
 
-    HandleJumping();
+    HandleJetPack();
 
     HandleTriggerKick();
 
@@ -234,34 +236,30 @@ public class PlayerController : MonoBehaviour
     }
   }
 
-  private void HandleJumping()
+  private void HandleJetPack()
   {
     var spaceDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Space);
-    if (spaceDown && (IsGrounded(out var hit)))
+    if (spaceDown && IsGrounded(out var hit))
     {
       rb.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
       if (hit.transform.TryGetComponent<Rigidbody>(out var groundRb))
       {
-        // This will handle jumping from moving platform
+        // This will handle jetpacking from moving platform to get it's velocity
         rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
       }
     }
-    else if (!previousSpaceDown && spaceDown && IsWallRunning(out var wallHit) && latestWallJumpCollider != wallHit.collider)
+    else if (spaceDown && jetpackFuelLeft > 0f)
     {
-      rb.AddForce((wallHit.normal * 2 + Vector3.up).normalized * jumpPower, ForceMode.VelocityChange);
-      if (wallHit.transform.TryGetComponent<Rigidbody>(out var groundRb))
-      {
-        // This will handle jumping from moving platform
-        rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
-      }
-      latestWallJumpCollider = wallHit.collider;
-    }
-    else if (IsGrounded(out hit))
-    {
-      latestWallJumpCollider = null;
+      rb.AddForce(Vector3.up * jetpackPower);
+      jetpackFuelLeft -= Time.deltaTime;
     }
 
-    previousSpaceDown = spaceDown;
+    if (IsGrounded(out var _))
+    {
+      // Refill fuel
+      jetpackFuelLeft = Mathf.Min(maxJetpackDuration, jetpackFuelLeft + Time.deltaTime);
+    }
+
   }
 
   private bool IsGrounded(out RaycastHit hit)
@@ -276,10 +274,8 @@ public class PlayerController : MonoBehaviour
     return
       !IsGrounded(out var groundHit) &&
      (Physics.Raycast(transform.position, rotation * Vector3.left, out hit, 1f) &&
-      hit.collider != latestWallJumpCollider &&
       hit.collider.tag == "Terrain" ||
       Physics.Raycast(transform.position, rotation * Vector3.right, out hit, 1f) &&
-      hit.collider != latestWallJumpCollider &&
       hit.collider.tag == "Terrain");
 
   }
@@ -335,16 +331,11 @@ public class PlayerController : MonoBehaviour
 
     if (rightMouseDown && !previousRightMouseDown)
     {
-            var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
-            var spawnpoint = new Vector3(transform.position.x + .7f, transform.position.y + 2, transform.position.z + .5f);
+      var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
+      var spawnpoint = new Vector3(transform.position.x + .7f, transform.position.y + 2, transform.position.z + .5f);
       GameObject clone;
-      clone = Instantiate(bomb, spawnpoint,rotation);
-
-
-
-
+      clone = Instantiate(bomb, spawnpoint, rotation);
     }
-
 
   }
 }
