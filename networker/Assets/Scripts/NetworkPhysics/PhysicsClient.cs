@@ -136,14 +136,8 @@ namespace Network.Physics
       client.Send(new EventAckPacket(latestEvent));
     }
 
-    private void HandlePhysicsFrame(PhysicsState[] states, MultiPlayerInput input)
+    private void HandlePhysicsFrame(PhysicsState[] states)
     {
-      PreviousPlayerInputs = PlayerInputs;
-      PlayerInputs = input;
-
-      // By overwriting with local input, we avoid jitter if server
-      // hasn't seen local input yet
-      PlayerInputs.Inputs[PlayerId] = PlayerInput;
 
       foreach (var data in states)
       {
@@ -162,6 +156,17 @@ namespace Network.Physics
         }
       }
     }
+    private void HandlePhysicsInputs(MultiPlayerInput input)
+    {
+      PreviousPlayerInputs = PlayerInputs;
+      PlayerInputs = input;
+
+      // By overwriting with local input, we avoid jitter if server
+      // hasn't seen local input yet
+      PlayerInputs.Inputs[PlayerId] = PlayerInput;
+
+    }
+
 
     public void Tick()
     {
@@ -227,14 +232,16 @@ namespace Network.Physics
       bool canFastForward = largestFrame > currentFrame + N_BUFFER_FRAMES;
       var nextFrame = canFastForward ? currentFrame + 2 : currentFrame + 1;
 
-      PhysicsState[] states = new PhysicsState[0];
-      bufferedPhysicsStates.TryGetValue(nextFrame, out states);
+      if (bufferedPhysicsStates.TryGetValue(nextFrame, out var states))
+      {
+        HandlePhysicsFrame(states);
+      }
 
-      MultiPlayerInput input = MultiPlayerInput.Create();
-      bufferedInputs.TryGetValue(nextFrame, out input);
-      input.Inputs[PlayerId] = PlayerInput;
+      if (bufferedInputs.TryGetValue(nextFrame, out var input))
+      {
+        HandlePhysicsInputs(input);
+      }
 
-      HandlePhysicsFrame(states, input);
       for (var i = currentFrame; i <= nextFrame; i++)
       {
         bufferedPhysicsStates.Remove(i);
