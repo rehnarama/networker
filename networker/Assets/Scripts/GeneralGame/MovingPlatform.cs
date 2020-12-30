@@ -65,14 +65,17 @@ public class MovingPlatform : MonoBehaviour
 
   private void OnCollisionEnter(Collision other)
   {
-    // other.rigidbody.transform.SetParent(transform);
-    objectsOnTop.Add(other.rigidbody);
+    if (other.rigidbody != null)
+    {
+      objectsOnTop.Add(other.rigidbody);
+    }
   }
 
   private void OnCollisionExit(Collision other)
   {
-    // other.rigidbody.transform.parent = null;
-
-    objectsOnTop.Remove(other.rigidbody);
+    if (other.rigidbody != null)
+    {
+      objectsOnTop.Remove(other.rigidbody);
+    }
   }
 }
