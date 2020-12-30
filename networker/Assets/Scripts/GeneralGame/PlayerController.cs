@@ -71,7 +71,9 @@ public class PlayerController : MonoBehaviour
       }
     }
 
-
+    var headNb = head.GetComponent<NetworkedBody>();
+    headNb.playerAuthority = nb.playerAuthority;
+    NetworkState.RegisterBody(headNb.id, headNb); // We have to re-register it to update player authority
   }
 
   private void OnEnable()

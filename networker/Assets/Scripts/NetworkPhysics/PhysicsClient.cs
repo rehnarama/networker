@@ -59,10 +59,10 @@ namespace Network.Physics
 
     public void RegisterBody(int id, NetworkedBody body)
     {
-      networkBodies.Add(id, body);
+      networkBodies[id] = body;
       if (body.playerAuthority == PlayerId)
       {
-        authorityBodies.Add(id, body);
+        authorityBodies[id] = body;
       }
     }
 

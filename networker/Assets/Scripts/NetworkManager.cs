@@ -141,11 +141,6 @@ public class NetworkManager : MonoBehaviour
       case GameEvents.Instantiate:
         var iEvent = (InstantiateEvent)gameEvent;
         NetworkedBody networkedBody = Instantiate(instantiatePrefabMap[iEvent.InstantiateType], iEvent.Position, iEvent.Rotation);
-        if (iEvent.InstantiateType == InstantiateEvent.InstantiateTypes.Player)
-        {
-          // Have to assign authority to the head as well in player case
-          networkedBody.GetComponent<PlayerController>().head.GetComponent<NetworkedBody>().playerAuthority = iEvent.PlayerAuthority;
-        }
         networkedBody.playerAuthority = iEvent.PlayerAuthority;
 
         break;
