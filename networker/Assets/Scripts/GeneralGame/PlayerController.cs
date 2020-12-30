@@ -340,10 +340,17 @@ public class PlayerController : MonoBehaviour
   {
     if (NetworkState.IsServer)
     {
-      var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
+      var ray = head.playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+      var rotation = head.transform.rotation;
       var spawnpoint =
         new Vector3(transform.position.x, transform.position.y + 2, transform.position.z) +
         head.transform.rotation * Vector3.forward * 2;
+
+      if (Physics.Raycast(ray, out var hit, 100f))
+      {
+        rotation = Quaternion.FromToRotation(Vector3.forward, hit.point - spawnpoint);
+      }
+
       NetworkState.Server.InvokeEvent(new InstantiateEvent(spawnpoint, rotation, InstantiateEvent.InstantiateTypes.Bomb, -1));
     }
   }
