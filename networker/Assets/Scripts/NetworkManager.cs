@@ -141,11 +141,6 @@ public class NetworkManager : MonoBehaviour
       case GameEvents.Instantiate:
         var iEvent = (InstantiateEvent)gameEvent;
         NetworkedBody networkedBody = Instantiate(instantiatePrefabMap[iEvent.InstantiateType], iEvent.Position, iEvent.Rotation);
-        if (iEvent.InstantiateType == InstantiateEvent.InstantiateTypes.Player)
-        {
-          // Have to assign authority to the head as well in player case
-          networkedBody.GetComponent<PlayerController>().head.GetComponent<NetworkedBody>().playerAuthority = iEvent.PlayerAuthority;
-        }
         networkedBody.playerAuthority = iEvent.PlayerAuthority;
 
         break;
@@ -158,9 +153,13 @@ public class NetworkManager : MonoBehaviour
         var ke = (KickEvent)gameEvent;
         NetworkState.RegisteredBodies[ke.BodyId].body.AddForce(ke.Force, ForceMode.VelocityChange);
         break;
+      case GameEvents.Destroy:
+        var de = (DestroyEvent)gameEvent;
+        Destroy(NetworkState.RegisteredBodies[de.BodyId].gameObject);
+        NetworkState.Deregister(de.BodyId);
+        break;
     }
   }
-
 
   // Update is called once per frame
   void FixedUpdate()

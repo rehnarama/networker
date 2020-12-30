@@ -93,8 +93,13 @@ namespace Network.Physics
     {
       bodyIdCounter = Math.Max(bodyIdCounter, id);
       var priorityBody = new PriorityBody() { BodyId = id, Priority = 0, IsImportant = isImportant, Body = body };
-      idPriorityMap.Add(id, priorityBody);
-      NetworkBodies.Add(id, body);
+      idPriorityMap[id] = priorityBody;
+      NetworkBodies[id] = body;
+    }
+    public void DeregisterBody(int id)
+    {
+      idPriorityMap.Remove(id);
+      NetworkBodies.Remove(id);
     }
 
     public int FindNextFreeBodyId()

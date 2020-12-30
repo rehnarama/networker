@@ -9,7 +9,8 @@ namespace Events
     LoadScene,
     Death,
     Kick,
-    Trigger
+    Trigger,
+    Destroy
   }
 
   public interface IGameEvent : IEvent

@@ -22,10 +22,8 @@ public class PlayerController : MonoBehaviour
   }
 
 
-  public new Camera camera;
   public Transform body;
-  public Transform head;
-  public GameObject bomb;
+  public PlayerHeadController head;
 
   public float walkSpeed = 30f;
   public float lookSpeed = 250f;
@@ -34,6 +32,10 @@ public class PlayerController : MonoBehaviour
 
   [Tooltip("From 0-Infinity. 0 is no smoothing, Infinity is barely movable.")]
   public float lookSmoothing = 0.5f;
+  [Tooltip("From 0 to 90. Limits how much 'high up' the camera gets, looking downwards.")]
+  public float maxAngleUp = 60;
+  [Tooltip("From -0 to -90. Limits how much 'down' the camera gets, looking upwards.")]
+  public float maxAngleDown = -60;
   public float jumpPower = 8f;
   public float jetpackPower = 50f;
   private float jetpackFuelLeft;
@@ -66,12 +68,14 @@ public class PlayerController : MonoBehaviour
       if (NetworkState.Client.PlayerId == nb.playerAuthority)
       {
         Camera.main.gameObject.SetActive(false);
-        camera.gameObject.SetActive(true);
+        head.playerCamera.enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
       }
     }
 
-
+    var headNb = head.GetComponent<NetworkedBody>();
+    headNb.playerAuthority = nb.playerAuthority;
+    NetworkState.RegisterBody(headNb.id, headNb); // We have to re-register it to update player authority
   }
 
   private void OnEnable()
@@ -177,8 +181,18 @@ public class PlayerController : MonoBehaviour
     var targetQuaternion = head.transform.localRotation * horizontalQuaternion * verticalQuaternion;
     head.transform.localRotation = Quaternion.Lerp(head.transform.localRotation, targetQuaternion, 1f / (1f + lookSmoothing));
     var eulerRotation = head.transform.localRotation.eulerAngles;
-    head.transform.localRotation = Quaternion.Euler(eulerRotation.x, eulerRotation.y, 0); // We only want rotation around these two, let's remove Z-axis rotation!
+    head.transform.localRotation = Quaternion.Euler(ClampAngle(eulerRotation.x, maxAngleDown, maxAngleUp), eulerRotation.y, 0); // We only want rotation around these two, let's remove Z-axis rotation!
 
+  }
+
+  private float ClampAngle(float angle, float min, float max)
+  {
+    return Mathf.Clamp(NormalizeAngle(angle), min, max);
+  }
+
+  private float NormalizeAngle(float angle)
+  {
+    return Mathf.DeltaAngle(0f, angle);
   }
 
   private void HandleBody()
@@ -340,10 +354,19 @@ public class PlayerController : MonoBehaviour
   {
     if (NetworkState.IsServer)
     {
-      var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
+      var ray = head.playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+      var rotation = head.transform.rotation;
       var spawnpoint =
         new Vector3(transform.position.x, transform.position.y + 2, transform.position.z) +
         head.transform.rotation * Vector3.forward * 2;
+
+      rb.GetComponent<Collider>().enabled = false;
+      if (Physics.Raycast(ray, out var hit, 100f))
+      {
+        rotation = Quaternion.FromToRotation(Vector3.forward, hit.point - spawnpoint);
+      }
+      rb.GetComponent<Collider>().enabled = true;
+
       NetworkState.Server.InvokeEvent(new InstantiateEvent(spawnpoint, rotation, InstantiateEvent.InstantiateTypes.Bomb, -1));
     }
   }
