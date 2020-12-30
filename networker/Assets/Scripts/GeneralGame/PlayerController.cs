@@ -360,10 +360,12 @@ public class PlayerController : MonoBehaviour
         new Vector3(transform.position.x, transform.position.y + 2, transform.position.z) +
         head.transform.rotation * Vector3.forward * 2;
 
+      rb.GetComponent<Collider>().enabled = false;
       if (Physics.Raycast(ray, out var hit, 100f))
       {
         rotation = Quaternion.FromToRotation(Vector3.forward, hit.point - spawnpoint);
       }
+      rb.GetComponent<Collider>().enabled = true;
 
       NetworkState.Server.InvokeEvent(new InstantiateEvent(spawnpoint, rotation, InstantiateEvent.InstantiateTypes.Bomb, -1));
     }
