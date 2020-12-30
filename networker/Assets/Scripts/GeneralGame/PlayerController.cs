@@ -22,10 +22,8 @@ public class PlayerController : MonoBehaviour
   }
 
 
-  public new Camera camera;
   public Transform body;
-  public Transform head;
-  public GameObject bomb;
+  public PlayerHeadController head;
 
   public float walkSpeed = 30f;
   public float lookSpeed = 250f;
@@ -66,7 +64,7 @@ public class PlayerController : MonoBehaviour
       if (NetworkState.Client.PlayerId == nb.playerAuthority)
       {
         Camera.main.gameObject.SetActive(false);
-        camera.gameObject.SetActive(true);
+        head.playerCamera.enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
       }
     }
