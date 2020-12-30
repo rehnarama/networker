@@ -133,6 +133,7 @@ public class NetworkManager : MonoBehaviour
         else
         {
           networkedBody = Instantiate(playerPrefab, iEvent.Position, Quaternion.identity);
+          networkedBody.GetComponent<PlayerController>().head.GetComponent<NetworkedBody>().playerAuthority = iEvent.PlayerAuthority;
         }
         networkedBody.playerAuthority = iEvent.PlayerAuthority;
 
