@@ -130,6 +130,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   head: {fileID: 6976279664034911823}
   targetDistance: 6
+  diff: {x: 0, y: 1, z: 0}
 --- !u!1 &1828143183752956964
 GameObject:
   m_ObjectHideFlags: 0

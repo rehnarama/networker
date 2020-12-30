@@ -7,6 +7,7 @@ public class CharacterCameraController : MonoBehaviour
   // Start is called before the first frame update
   public GameObject head;
   public float targetDistance;
+  public Vector3 diff;
 
   private void Start()
   {
@@ -25,7 +26,7 @@ public class CharacterCameraController : MonoBehaviour
   {
     var targetRotation = head.transform.rotation;
 
-    var targetPosition = head.transform.position + targetRotation * (Vector3.back * targetDistance);
+    var targetPosition = (head.transform.position + diff) + targetRotation * (Vector3.back * targetDistance);
 
     var delta = targetPosition - head.transform.position;
 
