@@ -53,6 +53,9 @@ namespace Events
           case GameEvents.Kick:
             e = new KickEvent();
             break;
+          case GameEvents.Destroy:
+            e = new DestroyEvent();
+            break;
         }
 
         e.EventNumber = eventNumber;

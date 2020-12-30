@@ -65,6 +65,14 @@ namespace Network.Physics
         authorityBodies[id] = body;
       }
     }
+    public void DeregisterBody(int id)
+    {
+      networkBodies.Remove(id);
+      if (authorityBodies.ContainsKey(id))
+      {
+        authorityBodies.Remove(id);
+      }
+    }
 
     public int FindNextFreeBodyId()
     {

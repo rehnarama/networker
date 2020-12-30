@@ -153,9 +153,13 @@ public class NetworkManager : MonoBehaviour
         var ke = (KickEvent)gameEvent;
         NetworkState.RegisteredBodies[ke.BodyId].body.AddForce(ke.Force, ForceMode.VelocityChange);
         break;
+      case GameEvents.Destroy:
+        var de = (DestroyEvent)gameEvent;
+        Destroy(NetworkState.RegisteredBodies[de.BodyId].gameObject);
+        NetworkState.Deregister(de.BodyId);
+        break;
     }
   }
-
 
   // Update is called once per frame
   void FixedUpdate()

@@ -96,6 +96,11 @@ namespace Network.Physics
       idPriorityMap[id] = priorityBody;
       NetworkBodies[id] = body;
     }
+    public void DeregisterBody(int id)
+    {
+      idPriorityMap.Remove(id);
+      NetworkBodies.Remove(id);
+    }
 
     public int FindNextFreeBodyId()
     {

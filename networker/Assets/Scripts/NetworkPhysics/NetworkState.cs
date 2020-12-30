@@ -4,6 +4,7 @@ namespace Network
 {
   using System;
   using System.Collections.Generic;
+  using global::Events;
   using Network.Events;
   using Network.Packets.Signalling;
   using Network.Signalling;
@@ -69,6 +70,17 @@ namespace Network
       else
       {
         Client.RegisterBody(id, networkedBody);
+      }
+    }
+    internal static void Deregister(int bodyId)
+    {
+      if (IsServer)
+      {
+        Server.DeregisterBody(bodyId);
+      }
+      else
+      {
+        Client.DeregisterBody(bodyId);
       }
     }
     internal static Dictionary<int, NetworkedBody> RegisteredBodies
@@ -145,5 +157,29 @@ namespace Network
         }
       }
     }
+
+    public static void Destroy(int bodyId)
+    {
+      if (IsServer)
+      {
+        Server.InvokeEvent(new DestroyEvent(bodyId));
+      }
+    }
+    public static void Destroy(NetworkedBody nb)
+    {
+      Destroy(nb.id);
+    }
+    public static void Destroy(UnityEngine.GameObject go)
+    {
+      if (go.TryGetComponent<NetworkedBody>(out var nb))
+      {
+        Destroy(nb);
+      }
+      else
+      {
+        throw new SystemException("Game Object '" + go.name + "' is not a NetworkedBody, can only remove networked bodies.");
+      }
+    }
+
   }
 }
