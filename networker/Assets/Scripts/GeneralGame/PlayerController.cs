@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
   public new Camera camera;
   public Transform body;
   public Transform head;
-    public GameObject bomb;
+  public GameObject bomb;
 
   public float walkSpeed = 30f;
   public float lookSpeed = 250f;
@@ -37,6 +37,8 @@ public class PlayerController : MonoBehaviour
 
   private bool previousSpaceDown = false;
   private Collider latestWallJumpCollider = null;
+  private Quaternion wallRunningRotation = Quaternion.identity;
+  private Quaternion groundRunningRotation = Quaternion.identity;
 
 
   public bool IsControlling
@@ -88,12 +90,13 @@ public class PlayerController : MonoBehaviour
 
 
     HandleWallRunning();
-    handleLooking();
+    HandleLooking();
+    HandleBody();
   }
 
   void FixedUpdate()
   {
-    handleWalking();
+    HandleWalking();
 
     HandleJumping();
 
@@ -105,7 +108,8 @@ public class PlayerController : MonoBehaviour
 
   private void HandleWallRunning()
   {
-    Quaternion targetQuat = Quaternion.identity;
+
+    Quaternion angleRotation = Quaternion.identity;
     if (IsWallRunning(out var hit))
     {
       if (rb.velocity.y < 0)
@@ -113,16 +117,16 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(Physics.gravity * rb.mass * -0.5f); // Decrease gravity by 50%
       }
 
-      targetQuat = Quaternion.FromToRotation(Vector3.up, (hit.normal + Vector3.up).normalized);
+      angleRotation = Quaternion.FromToRotation(Vector3.up, (hit.normal * 2 + Vector3.up).normalized);
 
       rb.AddForce(-hit.normal * 0.2f);
     }
 
-    body.rotation = Quaternion.Lerp(body.rotation, targetQuat, 0.1f);
+    wallRunningRotation = Quaternion.Slerp(wallRunningRotation, angleRotation, 0.1f);
   }
 
 
-  private void handleLooking()
+  private void HandleLooking()
   {
     var mouseX = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Mouse X");
     var mouseY = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Mouse Y");
@@ -138,9 +142,24 @@ public class PlayerController : MonoBehaviour
     head.transform.localRotation = Quaternion.Lerp(head.transform.localRotation, targetQuaternion, 1f / (1f + lookSmoothing));
     var eulerRotation = head.transform.localRotation.eulerAngles;
     head.transform.localRotation = Quaternion.Euler(eulerRotation.x, eulerRotation.y, 0); // We only want rotation around these two, let's remove Z-axis rotation!
+
   }
 
-  private void handleWalking()
+  private void HandleBody()
+  {
+    var sidewards = Vector3.right * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal");
+    var forwards = Vector3.forward * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical");
+
+    var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
+    var force = rotation * (sidewards + forwards) / 2f + GetBreakingForce() / 20f;
+    var forceRotation = Quaternion.FromToRotation(Vector3.up, force + Vector3.up);
+    groundRunningRotation = Quaternion.Slerp(groundRunningRotation, forceRotation, 0.05f);
+
+    var eulerRotation = head.transform.localRotation.eulerAngles;
+    body.rotation = groundRunningRotation * wallRunningRotation * Quaternion.Euler(0, eulerRotation.y, 0);
+  }
+
+  private void HandleWalking()
   {
     var sidewards = Vector3.right * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal");
     var forwards = Vector3.forward * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical");
@@ -161,16 +180,27 @@ public class PlayerController : MonoBehaviour
       rb.AddForce(dragForce, ForceMode.Acceleration);
     }
 
+    rb.AddForce(GetBreakingForce());
+  }
+
+  private Vector3 GetBreakingForce()
+  {
+    var sidewards = Vector3.right * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal");
+    var forwards = Vector3.forward * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical");
+
     // If not moving in air, try to be still in xz-direction
     if ((sidewards + forwards).sqrMagnitude < Mathf.Epsilon && IsGrounded(out var _))
     {
-      rb.velocity -= new Vector3(
+      return -new Vector3(
         rb.velocity.x,
         0f,
         rb.velocity.z
       ) * breakingFactor;
     }
-
+    else
+    {
+      return Vector3.zero;
+    }
   }
 
   private void HandleJumping()
@@ -211,12 +241,15 @@ public class PlayerController : MonoBehaviour
   private bool IsWallRunning(out RaycastHit hit)
   {
     hit = new RaycastHit();
+    var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
     return
       !IsGrounded(out var groundHit) &&
-     (Physics.Raycast(transform.position, head.transform.localRotation * Vector3.left, out hit, 0.6f) &&
-      hit.collider != latestWallJumpCollider ||
-      Physics.Raycast(transform.position, head.transform.localRotation * Vector3.right, out hit, 0.6f) &&
-      hit.collider != latestWallJumpCollider);
+     (Physics.Raycast(transform.position, rotation * Vector3.left, out hit, 1f) &&
+      hit.collider != latestWallJumpCollider &&
+      hit.collider.tag == "Terrain" ||
+      Physics.Raycast(transform.position, rotation * Vector3.right, out hit, 1f) &&
+      hit.collider != latestWallJumpCollider &&
+      hit.collider.tag == "Terrain");
 
   }
 
@@ -253,24 +286,24 @@ public class PlayerController : MonoBehaviour
       }
     }
   }
-    private void HandleBomb()
+  private void HandleBomb()
+  {
+    var previousRightMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
+
+    var rightMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
+
+
+    if (rightMouseDown && !previousRightMouseDown)
     {
-        var previousRightMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
-
-        var rightMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
-
-
-        if (rightMouseDown&&!previousRightMouseDown)
-        {
-            var spawnpoint = new Vector3 (transform.position.x+.7f,transform.position.y+2, transform.position.z+.5f);
-            GameObject clone;
-            clone= Instantiate(bomb, spawnpoint , Quaternion.identity);
-
-            
+      var spawnpoint = new Vector3(transform.position.x + .7f, transform.position.y + 2, transform.position.z + .5f);
+      GameObject clone;
+      clone = Instantiate(bomb, spawnpoint, Quaternion.identity);
 
 
-        }
 
 
     }
+
+
+  }
 }

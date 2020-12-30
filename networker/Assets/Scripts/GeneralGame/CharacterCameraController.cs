@@ -23,7 +23,7 @@ public class CharacterCameraController : MonoBehaviour
 
   private void UpdatePosition()
   {
-    var targetRotation = head.transform.localRotation;
+    var targetRotation = head.transform.rotation;
 
     var targetPosition = head.transform.position + targetRotation * (Vector3.back * targetDistance);
 
@@ -41,7 +41,7 @@ public class CharacterCameraController : MonoBehaviour
 
   private void UpdateRotation()
   {
-    var targetRotation = head.transform.localRotation;
+    var targetRotation = head.transform.rotation;
     transform.rotation = targetRotation;
   }
 }
