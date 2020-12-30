@@ -288,16 +288,17 @@ public class PlayerController : MonoBehaviour
   }
   private void HandleBomb()
   {
-    var previousRightMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
+    var previousRightMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse1);
 
-    var rightMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
+    var rightMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse1);
 
 
     if (rightMouseDown && !previousRightMouseDown)
     {
-      var spawnpoint = new Vector3(transform.position.x + .7f, transform.position.y + 2, transform.position.z + .5f);
+            var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
+            var spawnpoint = new Vector3(transform.position.x + .7f, transform.position.y + 2, transform.position.z + .5f);
       GameObject clone;
-      clone = Instantiate(bomb, spawnpoint, Quaternion.identity);
+      clone = Instantiate(bomb, spawnpoint,rotation);
 
 
 
