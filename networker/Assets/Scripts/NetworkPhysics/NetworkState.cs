@@ -3,6 +3,7 @@ using System.Net;
 namespace Network
 {
   using System;
+  using System.Collections.Generic;
   using Network.Events;
   using Network.Packets.Signalling;
   using Network.Signalling;
@@ -70,18 +71,21 @@ namespace Network
         Client.RegisterBody(id, networkedBody);
       }
     }
+    internal static Dictionary<int, NetworkedBody> RegisteredBodies
+    {
+      get
+      {
+        if (IsServer)
+        {
+          return Server.NetworkBodies;
+        }
+        else
+        {
+          return Client.NetworkBodies;
+        }
 
-    // internal static int FindNextFreeBodyId()
-    // {
-    //   if (IsServer)
-    //   {
-    //     return Server.FindNextFreeBodyId();
-    //   }
-    //   else
-    //   {
-    //     return Client.FindNextFreeBodyId();
-    //   }
-    // }
+      }
+    }
 
     public static void StartPhysicsClient(IPEndPoint serverEndpoint, IPacketSerializer packetSerializer, Events.EventSerializer eventSerializer = null, int port = Config.CLIENT_PORT)
     {

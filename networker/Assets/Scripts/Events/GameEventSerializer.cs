@@ -47,6 +47,12 @@ namespace Events
           case GameEvents.Death:
             e = new DeathEvent();
             break;
+          case GameEvents.Trigger:
+            e = new TriggerEvent();
+            break;
+          case GameEvents.Kick:
+            e = new KickEvent();
+            break;
         }
 
         e.EventNumber = eventNumber;

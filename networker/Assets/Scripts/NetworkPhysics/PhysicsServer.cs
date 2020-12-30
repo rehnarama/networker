@@ -48,7 +48,10 @@ namespace Network.Physics
       }
     }
 
+    private Dictionary<int, int> clientEventsReceived = new Dictionary<int, int>();
+
     private Dictionary<int, PriorityBody> idPriorityMap = new Dictionary<int, PriorityBody>();
+    public Dictionary<int, NetworkedBody> NetworkBodies = new Dictionary<int, NetworkedBody>();
 
     public MultiPlayerInput PreviousPlayerInputs { get; private set; } = MultiPlayerInput.Create();
     public MultiPlayerInput PlayerInputs
@@ -64,6 +67,8 @@ namespace Network.Physics
 
     public delegate void OnEventHandler(IEvent e);
     public event OnEventHandler OnEvent;
+    public delegate void OnClientEventHandler(IEvent e, int playerId);
+    public event OnClientEventHandler OnClientEvent;
     public delegate void OnJoinHandler(int playerId);
     public event OnJoinHandler OnPlayerJoin;
 
@@ -89,6 +94,7 @@ namespace Network.Physics
       bodyIdCounter = Math.Max(bodyIdCounter, id);
       var priorityBody = new PriorityBody() { BodyId = id, Priority = 0, IsImportant = isImportant, Body = body };
       idPriorityMap.Add(id, priorityBody);
+      NetworkBodies.Add(id, body);
     }
 
     public int FindNextFreeBodyId()
@@ -249,6 +255,24 @@ namespace Network.Physics
               pb.Body.body.angularVelocity = authorityPosition.AngularVelocity;
             }
           }
+        }
+
+        var latestEventAck = -1;
+        bool shouldSendAck = false;
+        clientEventsReceived.TryGetValue(playerId, out latestEventAck);
+        foreach (var e in inputPacket.Events)
+        {
+          if (latestEventAck < e.EventNumber)
+          {
+            OnClientEvent?.Invoke(e, playerId);
+            latestEventAck = e.EventNumber;
+            shouldSendAck = true;
+          }
+        }
+        if (shouldSendAck)
+        {
+          clientEventsReceived[playerId] = latestEventAck;
+          Server.Send(new EventAckPacket(latestEventAck), remoteEndPoint);
         }
       }
     }

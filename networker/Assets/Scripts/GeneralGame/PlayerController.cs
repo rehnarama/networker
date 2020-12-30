@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Events;
 using Network;
+using Network.Events;
 using Network.Physics;
 using UnityEngine;
 
@@ -70,6 +72,35 @@ public class PlayerController : MonoBehaviour
 
   }
 
+  private void OnEnable()
+  {
+    if (NetworkState.IsServer)
+    {
+      NetworkState.Server.OnClientEvent += OnClientEvent;
+    }
+  }
+  private void OnDisable()
+  {
+    if (NetworkState.IsServer)
+    {
+      NetworkState.Server.OnClientEvent += OnClientEvent;
+    }
+  }
+  private void OnClientEvent(IEvent e, int playerId)
+  {
+    IGameEvent ge = (IGameEvent)e;
+    if (ge.Type == GameEvents.Trigger)
+    {
+      if (nb.playerAuthority == playerId)
+      {
+        var te = (TriggerEvent)ge;
+        if (te.trigger == TriggerEvent.Trigger.Kick)
+        {
+          HandleKick();
+        }
+      }
+    }
+  }
 
   private void Update()
   {
@@ -100,7 +131,7 @@ public class PlayerController : MonoBehaviour
 
     HandleJumping();
 
-    HandleKick();
+    HandleTriggerKick();
 
     HandleBomb();
   }
@@ -253,27 +284,35 @@ public class PlayerController : MonoBehaviour
 
   }
 
+  private void HandleTriggerKick()
+  {
+    if (nb.playerAuthority == NetworkState.Client.PlayerId)
+    {
+      if (Input.GetKeyDown(KeyCode.Mouse0))
+      {
+        NetworkState.Client.InvokeClientEvent(new TriggerEvent(TriggerEvent.Trigger.Kick));
+      }
+    }
+  }
+
   private void HandleKick()
   {
-    var previousLeftMouseDown = Network.NetworkState.PreviousInput.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
-    var leftMouseDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Mouse0);
-
-    var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
-    var direction = rotation * Vector3.forward;
-    var rays = new Ray[3] {
-      new Ray(transform.position, direction),
-      new Ray(transform.position + Vector3.up, direction),
-      new Ray(transform.position + Vector3.up * 2, direction),
-    };
-
-    if (!previousLeftMouseDown && leftMouseDown)
+    if (NetworkState.IsServer)
     {
-      HashSet<Rigidbody> bodiesFound = new HashSet<Rigidbody>();
+      var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
+      var direction = rotation * Vector3.forward;
+      var rays = new Ray[3] {
+        new Ray(transform.position, direction),
+        new Ray(transform.position + Vector3.up, direction),
+        new Ray(transform.position + Vector3.up * 2, direction),
+      };
+
+      HashSet<NetworkedBody> bodiesFound = new HashSet<NetworkedBody>();
       foreach (var ray in rays)
       {
         if (Physics.Raycast(ray, out var hit, 2f))
         {
-          if (hit.collider.TryGetComponent<Rigidbody>(out var hitBody))
+          if (hit.collider.TryGetComponent<NetworkedBody>(out var hitBody))
           {
             bodiesFound.Add(hitBody);
           }
@@ -282,7 +321,8 @@ public class PlayerController : MonoBehaviour
 
       foreach (var hitBody in bodiesFound)
       {
-        hitBody.AddForce((direction + Vector3.up).normalized * kickPower, ForceMode.VelocityChange);
+        var force = (direction + Vector3.up).normalized * kickPower;
+        NetworkState.Server.InvokeEvent(new KickEvent(hitBody.id, force));
       }
     }
   }

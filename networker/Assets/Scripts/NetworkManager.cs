@@ -143,6 +143,10 @@ public class NetworkManager : MonoBehaviour
         SceneManager.LoadScene(lsEvent.Scene);
         waitingForSceneLoad = true;
         break;
+      case GameEvents.Kick:
+        var ke = (KickEvent)gameEvent;
+        NetworkState.RegisteredBodies[ke.BodyId].body.AddForce(ke.Force, ForceMode.VelocityChange);
+        break;
     }
   }
 

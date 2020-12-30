@@ -21,7 +21,7 @@ namespace Tests
       originalInput.SetDigital(2, true);
       originalInput.SetDigital(3, false);
 
-      var original = new InputPacket(originalInput, new PhysicsState[0]);
+      var original = new InputPacket(originalInput, new PhysicsState[0], new Network.Events.IEvent[0]);
       var originalInterface = (IPacket)original;
 
       var writer = new Serializer(new System.IO.MemoryStream());

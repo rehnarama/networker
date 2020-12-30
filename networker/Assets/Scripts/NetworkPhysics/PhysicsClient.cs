@@ -26,10 +26,15 @@ namespace Network.Physics
     private int bodyIdCounter = 0;
 
     private Dictionary<int, NetworkedBody> networkBodies = new Dictionary<int, NetworkedBody>();
+    public Dictionary<int, NetworkedBody> NetworkBodies { get => networkBodies; set => networkBodies = value; }
     private Dictionary<int, NetworkedBody> authorityBodies = new Dictionary<int, NetworkedBody>();
 
     private Dictionary<int, PhysicsState[]> bufferedPhysicsStates = new Dictionary<int, PhysicsState[]>();
     private Dictionary<int, MultiPlayerInput> bufferedInputs = new Dictionary<int, MultiPlayerInput>();
+
+    private Queue<IEvent> clientEvents = new Queue<IEvent>();
+    private int clientEventCount = 0;
+    private int clientEventAck = -1;
 
     public MultiPlayerInput PreviousPlayerInputs { get; private set; } = MultiPlayerInput.Create();
     public MultiPlayerInput PlayerInputs { get; private set; } = MultiPlayerInput.Create();
@@ -113,6 +118,14 @@ namespace Network.Physics
           JoinAckPacket joinAckPacket = (JoinAckPacket)packet;
           PlayerId = joinAckPacket.playerId;
           break;
+        case PacketType.EventAck:
+          var ackPacket = (EventAckPacket)packet;
+          clientEventAck = ackPacket.id;
+          while (clientEventCount - clientEventAck > clientEvents.Count)
+          {
+            clientEvents.Dequeue();
+          }
+          break;
       }
     }
 
@@ -164,9 +177,15 @@ namespace Network.Physics
       // By overwriting with local input, we avoid jitter if server
       // hasn't seen local input yet
       PlayerInputs.Inputs[PlayerId] = PlayerInput;
-
     }
 
+
+    public void InvokeClientEvent(IEvent e)
+    {
+      e.EventNumber = clientEventCount;
+      clientEventCount++;
+      clientEvents.Enqueue(e);
+    }
 
     public void Tick()
     {
@@ -201,7 +220,7 @@ namespace Network.Physics
                                  AngularVelocity = body.Value.body.angularVelocity
                                };
 
-      client.Send(new InputPacket(PlayerInput, authorityPositions.ToArray()));
+      client.Send(new InputPacket(PlayerInput, authorityPositions.ToArray(), clientEvents.ToArray()));
     }
 
     private void TickPhysics()
