@@ -32,6 +32,10 @@ public class PlayerController : MonoBehaviour
 
   [Tooltip("From 0-Infinity. 0 is no smoothing, Infinity is barely movable.")]
   public float lookSmoothing = 0.5f;
+  [Tooltip("From 0 to 90. Limits how much 'high up' the camera gets, looking downwards.")]
+  public float maxAngleUp = 60;
+  [Tooltip("From -0 to -90. Limits how much 'down' the camera gets, looking upwards.")]
+  public float maxAngleDown = -60;
   public float jumpPower = 8f;
   public float jetpackPower = 50f;
   private float jetpackFuelLeft;
@@ -177,8 +181,18 @@ public class PlayerController : MonoBehaviour
     var targetQuaternion = head.transform.localRotation * horizontalQuaternion * verticalQuaternion;
     head.transform.localRotation = Quaternion.Lerp(head.transform.localRotation, targetQuaternion, 1f / (1f + lookSmoothing));
     var eulerRotation = head.transform.localRotation.eulerAngles;
-    head.transform.localRotation = Quaternion.Euler(eulerRotation.x, eulerRotation.y, 0); // We only want rotation around these two, let's remove Z-axis rotation!
+    head.transform.localRotation = Quaternion.Euler(ClampAngle(eulerRotation.x, maxAngleDown, maxAngleUp), eulerRotation.y, 0); // We only want rotation around these two, let's remove Z-axis rotation!
 
+  }
+
+  private float ClampAngle(float angle, float min, float max)
+  {
+    return Mathf.Clamp(NormalizeAngle(angle), min, max);
+  }
+
+  private float NormalizeAngle(float angle)
+  {
+    return Mathf.DeltaAngle(0f, angle);
   }
 
   private void HandleBody()
