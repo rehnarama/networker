@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
   }
 
   public HUDController hudPrefab;
+  public NamePlateController namePlatePrefab;
 
   public Transform body;
   public PlayerHeadController head;
@@ -79,6 +80,14 @@ public class PlayerController : MonoBehaviour
     NetworkState.RegisterBody(headNb.id, headNb); // We have to re-register it to update player authority
 
     CreateHUD();
+
+    var wsc = GameObject.FindGameObjectWithTag("WorldSpaceCanvas");
+    if (NetworkState.IsClient && NetworkState.PlayerId != nb.playerAuthority && wsc != null)
+    {
+      var namePlate = Instantiate(namePlatePrefab, wsc.transform);
+      namePlate.follow = transform;
+      namePlate.Name = NetworkState.GameClient.Players[nb.playerAuthority].Name;
+    }
   }
 
   private void CreateHUD()

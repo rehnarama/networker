@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 8095602068836881826}
   m_Layer: 0
   m_Name: PlayerCamera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -182,6 +182,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hudPrefab: {fileID: 1513923175162259310, guid: 624705978e6e69d48bfa2dcce9bcace9,
+    type: 3}
+  namePlatePrefab: {fileID: 4593898008214126634, guid: f2529ef5dc32d0447b56c64d588fd4e0,
     type: 3}
   body: {fileID: 1506339434944518014}
   head: {fileID: 7626708546296783030}
