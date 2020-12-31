@@ -42,7 +42,6 @@ public class PlayerController : MonoBehaviour
   public float maxJetpackDuration = 2f;
   public float kickPower = 5f;
 
-  private Quaternion wallRunningRotation = Quaternion.identity;
   private Quaternion groundRunningRotation = Quaternion.identity;
 
 
@@ -132,7 +131,6 @@ public class PlayerController : MonoBehaviour
     }
 
 
-    HandleWallRunning();
     HandleLooking();
     HandleBody();
     HandleTriggerBomb();
@@ -146,24 +144,6 @@ public class PlayerController : MonoBehaviour
   }
 
 
-  private void HandleWallRunning()
-  {
-
-    Quaternion angleRotation = Quaternion.identity;
-    if (IsWallRunning(out var hit))
-    {
-      if (rb.velocity.y < 0)
-      {
-        rb.AddForce(Physics.gravity * rb.mass * -0.5f); // Decrease gravity by 50%
-      }
-
-      angleRotation = Quaternion.FromToRotation(Vector3.up, (hit.normal * 2 + Vector3.up).normalized);
-
-      rb.AddForce(-hit.normal * 0.2f);
-    }
-
-    wallRunningRotation = Quaternion.Slerp(wallRunningRotation, angleRotation, 0.1f);
-  }
 
 
   private void HandleLooking()
@@ -206,7 +186,7 @@ public class PlayerController : MonoBehaviour
     groundRunningRotation = Quaternion.Slerp(groundRunningRotation, forceRotation, 0.05f);
 
     var eulerRotation = head.transform.localRotation.eulerAngles;
-    body.rotation = groundRunningRotation * wallRunningRotation * Quaternion.Euler(0, eulerRotation.y, 0);
+    body.rotation = groundRunningRotation * Quaternion.Euler(0, eulerRotation.y, 0);
   }
 
   private void HandleWalking()
@@ -221,7 +201,6 @@ public class PlayerController : MonoBehaviour
     {
       // Checking if slope in front of use, in that case rotate the force up
       directedForce = Quaternion.FromToRotation(Vector3.up, groundHit.normal) * directedForce;
-      Debug.Log(directedForce);
     }
     rb.AddForce(directedForce, ForceMode.Acceleration);
 
@@ -288,19 +267,6 @@ public class PlayerController : MonoBehaviour
   private bool IsGrounded(out RaycastHit hit)
   {
     return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.1f);
-  }
-
-  private bool IsWallRunning(out RaycastHit hit)
-  {
-    hit = new RaycastHit();
-    var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
-    return
-      !IsGrounded(out var groundHit) &&
-     (Physics.Raycast(transform.position, rotation * Vector3.left, out hit, 1f) &&
-      hit.collider.tag == "Terrain" ||
-      Physics.Raycast(transform.position, rotation * Vector3.right, out hit, 1f) &&
-      hit.collider.tag == "Terrain");
-
   }
 
   private void HandleTriggerKick()
