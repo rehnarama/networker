@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Events;
 using Network;
 using Network.Events;
+using Network.Game;
 using Network.Signalling;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -17,14 +18,40 @@ public class GameLobbyController : MonoBehaviour
 
   public Button playButton;
 
+  public PlayerListController playerList;
+
+  public GameObject lobbyUI;
+
   void Start()
   {
     if (NetworkState.IsServer)
     {
+      lobbyUI.SetActive(false);
       var inputDialog = Instantiate(inputDialogPrefab, FindObjectOfType<Canvas>().transform);
       inputDialog.AllowCancel = false;
       inputDialog.OnInput += StartHost;
     }
+  }
+
+  private void OnEnable()
+  {
+    if (NetworkState.IsClient)
+    {
+      NetworkState.GameClient.PlayerListUpdated += HandlePlayerListUpdated;
+    }
+  }
+
+  private void OnDisable()
+  {
+    if (NetworkState.IsClient)
+    {
+      NetworkState.GameClient.PlayerListUpdated -= HandlePlayerListUpdated;
+    }
+  }
+
+  private void HandlePlayerListUpdated(object sender, PlayerList e)
+  {
+    playerList.List = e;
   }
 
   void StartHost(string name)
@@ -34,6 +61,8 @@ public class GameLobbyController : MonoBehaviour
       hostClient = new SignallingClient(Config.SIGNALLING_SERVER_ENDPOINT, NetworkState.Server.Connection);
       hostClient.StartHosting(name);
       playButton.gameObject.SetActive(true);
+
+      lobbyUI.SetActive(true);
     }
   }
 

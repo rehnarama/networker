@@ -68,6 +68,7 @@ namespace Network
         case PacketType.Join:
           clients.Add(remoteEndPoint);
           OnJoin?.Invoke((JoinPacket)packet, remoteEndPoint);
+          Console.WriteLine("Got join packe???");
           break;
         default:
           break;

@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Network
 {
+
   public class Serializer
   {
     public MemoryStream Stream { get; private set; }
@@ -265,6 +266,8 @@ namespace Network
         SerializeFloat(ref a[3]);
       }
     }
+
+
 
     public byte[] ToByteArray()
     {

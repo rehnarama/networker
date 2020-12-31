@@ -7,6 +7,7 @@ namespace Network.Packets
   [Serializable]
   public enum PacketType
   {
+    Noop,
     Physics,
     Join,
     JoinAck,

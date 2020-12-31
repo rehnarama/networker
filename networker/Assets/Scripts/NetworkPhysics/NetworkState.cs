@@ -6,6 +6,7 @@ namespace Network
   using System.Collections.Generic;
   using global::Events;
   using Network.Events;
+  using Network.Game;
   using Network.Packets.Signalling;
   using Network.Signalling;
   using Physics;
@@ -16,7 +17,9 @@ namespace Network
     public static bool IsClient { get; private set; }
 
     public static PhysicsServer Server { get; set; }
+    public static GameServer GameServer { get; set; }
     public static PhysicsClient Client { get; set; }
+    public static GameClient GameClient { get; set; }
 
     public static EventSerializer Serializer { get; private set; }
 
@@ -58,6 +61,7 @@ namespace Network
         Server = new PhysicsServer(udpServer);
         Server.Listen(port);
 
+        GameServer = new GameServer(Server);
       }
     }
 
@@ -110,6 +114,8 @@ namespace Network
         Client = new PhysicsClient(udpClient);
         Client.Listen(port);
         Client.TryJoin();
+
+        GameClient = new GameClient(Client);
       }
     }
 

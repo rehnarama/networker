@@ -190,6 +190,8 @@ namespace Network.Physics
 
         eventAcks[playerId] = LatestAckedEvent;
         acks[playerId] = LatestAckedFrame;
+
+        OnPlayerJoin?.Invoke(playerId);
       }
       else
       {
@@ -197,7 +199,6 @@ namespace Network.Physics
       }
 
       Server.Send(new JoinAckPacket(playerId), remoteEndPoint);
-      OnPlayerJoin?.Invoke(playerId);
     }
 
     private void OnPacket(IPacket packet, IPEndPoint remoteEndPoint)

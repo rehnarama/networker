@@ -32,6 +32,7 @@ namespace Events
 
       var typeInt = (int)(e?.Type ?? 0);
       serializer.SerializeInt(ref typeInt);
+
       if (serializer.IsReader)
       {
         var type = (GameEvents)typeInt;
@@ -55,6 +56,16 @@ namespace Events
             break;
           case GameEvents.Destroy:
             e = new DestroyEvent();
+            break;
+          case GameEvents.PlayerList:
+            e = new PlayerListEvent();
+            break;
+          case GameEvents.NameChange:
+            e = new NameChangeEvent();
+            break;
+          default:
+            e = new PlayerListEvent();
+            // throw new System.SystemException($"Unknown GameEvent '{type}'. Did you forget to add serialization to this event, or is serialisation/deserialisation out of sync?");
             break;
         }
 

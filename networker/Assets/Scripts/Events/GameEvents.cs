@@ -10,7 +10,9 @@ namespace Events
     Death,
     Kick,
     Trigger,
-    Destroy
+    Destroy,
+    PlayerList,
+    NameChange
   }
 
   public interface IGameEvent : IEvent

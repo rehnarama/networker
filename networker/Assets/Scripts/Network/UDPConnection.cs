@@ -116,7 +116,7 @@ namespace Network
         if (this.receivedStack.TryDequeue(out var data))
         {
           var s = Serializer.CreateReader(data.Buffer);
-          IPacket packet = new JoinPacket(); // Just assign something to make ref happy
+          IPacket packet = new JoinPacket();
           packetSerializer.Serialize(s, ref packet);
 
           OnPacket?.Invoke(packet, data.RemoteEndPoint);
