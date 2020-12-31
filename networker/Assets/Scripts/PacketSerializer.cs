@@ -10,7 +10,8 @@ public class PacketSerializer : BasePacketSerializer
     bool shouldSerialize =
       type == PacketType.Input ||
       type == PacketType.Physics ||
-      type == PacketType.PhysicsAck;
+      type == PacketType.PhysicsAck ||
+      type == PacketType.EventAck;
 
     if (serializer.IsReader)
     {
@@ -25,10 +26,16 @@ public class PacketSerializer : BasePacketSerializer
         case PacketType.PhysicsAck:
           packet = new PhysicsAckPacket();
           break;
+        case PacketType.EventAck:
+          packet = new EventAckPacket();
+          break;
       }
     }
 
-    packet.Serialize(serializer);
+    if (shouldSerialize)
+    {
+      packet.Serialize(serializer);
+    }
 
     return type;
   }
