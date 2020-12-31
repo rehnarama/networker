@@ -14,6 +14,8 @@ namespace Network.Game
 
     private Dictionary<int, PlayerListItem> players = new Dictionary<int, PlayerListItem>();
 
+    public Dictionary<int, PlayerListItem> Players { get => players; set => players = value; }
+
     public event EventHandler<PlayerList> PlayerListUpdated;
 
     public GameClient(PhysicsClient physicsClient)
