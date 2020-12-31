@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     }
   }
 
+  public HUDController hudPrefab;
 
   public Transform body;
   public PlayerHeadController head;
@@ -38,7 +39,7 @@ public class PlayerController : MonoBehaviour
   public float maxAngleDown = -60;
   public float jumpPower = 8f;
   public float jetpackPower = 50f;
-  private float jetpackFuelLeft;
+  public float JetpackFuelLeft { get; private set; }
   public float maxJetpackDuration = 2f;
   public float kickPower = 5f;
 
@@ -55,9 +56,10 @@ public class PlayerController : MonoBehaviour
     }
   }
 
+
   void Start()
   {
-    jetpackFuelLeft = maxJetpackDuration;
+    JetpackFuelLeft = maxJetpackDuration;
 
     rb = GetComponent<Rigidbody>();
     nb = GetComponent<NetworkedBody>();
@@ -75,6 +77,18 @@ public class PlayerController : MonoBehaviour
     var headNb = head.GetComponent<NetworkedBody>();
     headNb.playerAuthority = nb.playerAuthority;
     NetworkState.RegisterBody(headNb.id, headNb); // We have to re-register it to update player authority
+
+    CreateHUD();
+  }
+
+  private void CreateHUD()
+  {
+    if (NetworkState.PlayerId == nb.playerAuthority)
+    {
+      var canvas = FindObjectOfType<Canvas>();
+      var hud = Instantiate(hudPrefab, canvas.transform);
+      hud.Player = this;
+    }
   }
 
   private void OnEnable()
@@ -250,16 +264,16 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(groundRb.velocity, ForceMode.VelocityChange);
       }
     }
-    else if (spaceDown && jetpackFuelLeft > 0f)
+    else if (spaceDown && JetpackFuelLeft > 0f)
     {
       rb.AddForce(Vector3.up * jetpackPower);
-      jetpackFuelLeft -= Time.deltaTime;
+      JetpackFuelLeft -= Time.deltaTime;
     }
 
     if (IsGrounded(out var _))
     {
       // Refill fuel
-      jetpackFuelLeft = Mathf.Min(maxJetpackDuration, jetpackFuelLeft + Time.deltaTime);
+      JetpackFuelLeft = Mathf.Min(maxJetpackDuration, JetpackFuelLeft + Time.deltaTime);
     }
 
   }

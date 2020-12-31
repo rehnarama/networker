@@ -113,6 +113,7 @@ MonoBehaviour:
   m_StopNaN: 0
   m_Dithering: 0
   m_ClearDepth: 1
+  m_AllowXRRendering: 1
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
@@ -180,6 +181,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 259b844bf46504e43908fac5cfa6873f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hudPrefab: {fileID: 1513923175162259310, guid: 624705978e6e69d48bfa2dcce9bcace9,
+    type: 3}
   body: {fileID: 1506339434944518014}
   head: {fileID: 7626708546296783030}
   walkSpeed: 50
@@ -187,6 +190,8 @@ MonoBehaviour:
   maxSpeed: 9
   breakingFactor: 50
   lookSmoothing: 0.5
+  maxAngleUp: 60
+  maxAngleDown: -60
   jumpPower: 8
   jetpackPower: 50
   maxJetpackDuration: 2
@@ -326,6 +331,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!1 &6976279664034911823
@@ -429,6 +435,11 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 3ed3dbeda10ecda469e11d27a035d0b8, type: 2}
     - target: {fileID: 3429104199972412238, guid: 608fc710915ef2c44a4aba6235da4443,
         type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429104199972412238, guid: 608fc710915ef2c44a4aba6235da4443,
+        type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -444,6 +455,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3429104199972412238, guid: 608fc710915ef2c44a4aba6235da4443,
         type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3429104199972412238, guid: 608fc710915ef2c44a4aba6235da4443,
+        type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -456,16 +472,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3429104199972412238, guid: 608fc710915ef2c44a4aba6235da4443,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3429104199972412238, guid: 608fc710915ef2c44a4aba6235da4443,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3429104199972412238, guid: 608fc710915ef2c44a4aba6235da4443,
         type: 3}
