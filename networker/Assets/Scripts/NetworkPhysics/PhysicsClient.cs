@@ -129,7 +129,7 @@ namespace Network.Physics
         case PacketType.EventAck:
           var ackPacket = (EventAckPacket)packet;
           clientEventAck = ackPacket.id;
-          while (clientEventCount - clientEventAck > clientEvents.Count)
+          while (clientEventCount - clientEventAck <= clientEvents.Count)
           {
             clientEvents.Dequeue();
           }

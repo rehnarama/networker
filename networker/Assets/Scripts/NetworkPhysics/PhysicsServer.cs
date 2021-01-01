@@ -231,7 +231,7 @@ namespace Network.Physics
           }
 
           var largestAckedEvent = LatestAckedEvent;
-          while (eventCount - largestAckedEvent > events.Count)
+          while (eventCount - largestAckedEvent <= events.Count)
           {
             events.Dequeue();
           }
