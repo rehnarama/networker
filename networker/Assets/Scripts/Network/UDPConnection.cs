@@ -12,6 +12,11 @@ namespace Network
 
   public class UDPConnection
   {
+    public static Random SimulationRNG = new Random();
+    public static bool SimulatePacketLoss = false;
+    public static float PacketLossSimulationPercentage = 0.1f;
+    public static int LatencySimulation = 0;
+
     protected UdpClient udpClient;
     protected ConcurrentQueue<UdpReceiveResult> receivedStack = new ConcurrentQueue<UdpReceiveResult>();
     private int port = -1;
@@ -83,7 +88,7 @@ namespace Network
       Send(packet, new IPEndPoint[] { to });
     }
 
-    public void Send<T>(T packet, IEnumerable<IPEndPoint> to) where T : IPacket
+    public async void Send<T>(T packet, IEnumerable<IPEndPoint> to) where T : IPacket
     {
       Serializer s = Serializer.CreateWriter();
       IPacket p = packet;
@@ -91,6 +96,19 @@ namespace Network
       var data = s.ToByteArray();
 
       AvgOutPacketSize = (AvgOutPacketSize * 100 + data.Length) / 101f;
+
+      if (SimulatePacketLoss)
+      {
+        if (SimulationRNG.NextDouble() < PacketLossSimulationPercentage)
+        {
+          return;
+        }
+      }
+
+      if (LatencySimulation > 0)
+      {
+        await System.Threading.Tasks.Task.Delay(LatencySimulation);
+      }
 
       foreach (var endpoint in to)
       {

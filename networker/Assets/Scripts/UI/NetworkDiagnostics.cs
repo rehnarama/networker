@@ -8,7 +8,6 @@ using UnityEngine;
 public class NetworkDiagnostics : MonoBehaviour
 {
   public TMPro.TMP_Text text;
-
   private static bool shouldShow = false;
 
   // Update is called once per frame
@@ -18,10 +17,28 @@ public class NetworkDiagnostics : MonoBehaviour
     {
       shouldShow = !shouldShow;
     }
+    if (Input.GetKeyDown(KeyCode.F2))
+    {
+      UDPConnection.SimulatePacketLoss = !UDPConnection.SimulatePacketLoss;
+    }
+    if (Input.GetKeyDown(KeyCode.F3))
+    {
+      UDPConnection.LatencySimulation += 20;
+    }
+    if (Input.GetKeyDown(KeyCode.F4))
+    {
+      UDPConnection.LatencySimulation -= 20;
+
+    }
+
 
     if (shouldShow)
     {
       string t = "";
+
+      t += $"Simulate {UDPConnection.PacketLossSimulationPercentage * 100}% packet loss? {UDPConnection.SimulatePacketLoss}\n";
+      t += $"Latency simulation? {UDPConnection.LatencySimulation}ms\n";
+
       if (NetworkState.IsServer)
       {
         var diagnostics = NetworkState.Server.GetDiagnostics();
