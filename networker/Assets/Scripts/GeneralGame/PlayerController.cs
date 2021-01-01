@@ -41,9 +41,11 @@ public class PlayerController : MonoBehaviour
   public float jumpPower = 8f;
   public float jetpackPower = 50f;
   public float JetpackFuelLeft { get; private set; }
+  public float maxJetpackHeight = 10f;
   public float maxJetpackDuration = 2f;
   public float kickPower = 5f;
 
+  private Vector3 originalJetpackPosition;
   private Quaternion groundRunningRotation = Quaternion.identity;
 
 
@@ -266,6 +268,8 @@ public class PlayerController : MonoBehaviour
     var spaceDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Space);
     if (spaceDown && IsGrounded(out var hit))
     {
+      originalJetpackPosition = rb.position;
+
       rb.AddForce(Vector3.up * jumpPower, ForceMode.VelocityChange);
       if (hit.transform.TryGetComponent<Rigidbody>(out var groundRb))
       {
@@ -275,7 +279,19 @@ public class PlayerController : MonoBehaviour
     }
     else if (spaceDown && JetpackFuelLeft > 0f)
     {
-      rb.AddForce(Vector3.up * jetpackPower);
+      var yDelta = rb.position.y - originalJetpackPosition.y;
+      var powerModifier = 1f - Mathf.Min(yDelta / maxJetpackHeight, 1f);
+
+      var realPower = jetpackPower * powerModifier;
+      if (realPower < -Physics.gravity.y * rb.mass)
+      {
+        if (rb.velocity.y < Mathf.Epsilon)
+        {
+          realPower = -Physics.gravity.y * rb.mass;
+        }
+      }
+
+      rb.AddForce(Vector3.up * realPower);
       JetpackFuelLeft -= Time.deltaTime;
     }
 
