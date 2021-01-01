@@ -29,7 +29,9 @@ public class PlayerController : MonoBehaviour
 
   public float walkSpeed = 30f;
   public float lookSpeed = 250f;
+  private float currentMaxSpeed = 6f;
   public float maxSpeed = 6f;
+  public float sprintMultiplier = 1.5f;
   public float breakingFactor = 0.3f;
 
   [Tooltip("From 0-Infinity. 0 is no smoothing, Infinity is barely movable.")]
@@ -41,6 +43,7 @@ public class PlayerController : MonoBehaviour
   public float jumpPower = 8f;
   public float jetpackPower = 50f;
   public float JetpackFuelLeft { get; private set; }
+  public ParticleSystem jetpackParticles;
   public float maxJetpackHeight = 10f;
   public float maxJetpackDuration = 2f;
   public float kickPower = 5f;
@@ -63,6 +66,7 @@ public class PlayerController : MonoBehaviour
   void Start()
   {
     JetpackFuelLeft = maxJetpackDuration;
+    currentMaxSpeed = maxSpeed;
 
     rb = GetComponent<Rigidbody>();
     nb = GetComponent<NetworkedBody>();
@@ -169,8 +173,6 @@ public class PlayerController : MonoBehaviour
   }
 
 
-
-
   private void HandleLooking()
   {
     var mouseX = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Mouse X");
@@ -231,10 +233,10 @@ public class PlayerController : MonoBehaviour
 
     // Try to limit xz movement if more than max speed
     var xzVelocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
-    var isTooFast = xzVelocity.sqrMagnitude > maxSpeed * maxSpeed * 0.7; // *0.9 so we can keep constant max speed instead of rubber banding at top speed
+    var isTooFast = xzVelocity.sqrMagnitude > currentMaxSpeed * currentMaxSpeed * 0.7; // *0.9 so we can keep constant max speed instead of rubber banding at top speed
     if (isTooFast)
     {
-      var idealDrag = walkSpeed / maxSpeed;
+      var idealDrag = walkSpeed / currentMaxSpeed;
       idealDrag = idealDrag / (idealDrag * Time.fixedDeltaTime + 1);
       var dragForce = -xzVelocity * idealDrag;
       rb.AddForce(dragForce, ForceMode.Acceleration);
@@ -265,6 +267,7 @@ public class PlayerController : MonoBehaviour
 
   private void HandleJetPack()
   {
+    bool isJetpacking = false;
     var spaceDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Space);
     if (spaceDown && IsGrounded(out var hit))
     {
@@ -293,9 +296,32 @@ public class PlayerController : MonoBehaviour
 
       rb.AddForce(Vector3.up * realPower);
       JetpackFuelLeft -= Time.deltaTime;
+      isJetpacking = true;
     }
 
-    if (IsGrounded(out var _))
+    var shiftDown = NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.LeftShift);
+
+    if (shiftDown && JetpackFuelLeft > 0f)
+    {
+      currentMaxSpeed = maxSpeed * sprintMultiplier;
+      JetpackFuelLeft -= Time.deltaTime;
+      isJetpacking = true;
+    }
+    else
+    {
+      currentMaxSpeed = maxSpeed;
+    }
+
+    if (isJetpacking && !jetpackParticles.isPlaying)
+    {
+      jetpackParticles.Play();
+    }
+    else if (!isJetpacking && jetpackParticles.isPlaying)
+    {
+      jetpackParticles.Stop();
+    }
+
+    if (IsGrounded(out var _) && !shiftDown)
     {
       // Refill fuel
       JetpackFuelLeft = Mathf.Min(maxJetpackDuration, JetpackFuelLeft + Time.deltaTime);

@@ -43,7 +43,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2949d151c2670cd4f88b4ac081b48973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  registredKeys: 2000000043010000
+  registredKeys: 2000000030010000
   registredAxises:
   - Horizontal
   - Vertical
