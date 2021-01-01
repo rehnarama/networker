@@ -24,7 +24,7 @@ namespace Network
     {
       get
       {
-        return Port;
+        return port;
       }
     }
 

@@ -17,13 +17,12 @@ public class BombScript : MonoBehaviour
   private void Start()
   {
     spawnTime = Time.time;
+    GetComponent<Rigidbody>().velocity = transform.rotation * Vector3.forward * speed;
   }
 
   // Update is called once per frame
   void Update()
   {
-    transform.Translate(Vector3.forward * speed * Time.deltaTime);
-
     if (Time.time - spawnTime > liveTime)
     {
       NetworkState.Destroy(gameObject);
@@ -38,7 +37,7 @@ public class BombScript : MonoBehaviour
       {
         NetworkState.Server.InvokeEvent(new KickEvent(
           nb.id,
-          transform.rotation * Vector3.forward * bombPower
+          (transform.rotation * Vector3.forward + Vector3.up).normalized * bombPower
         ));
       }
     }
