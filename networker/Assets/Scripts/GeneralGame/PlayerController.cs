@@ -29,6 +29,7 @@ public class PlayerController : MonoBehaviour
 
   public float walkSpeed = 30f;
   public float lookSpeed = 250f;
+  private float currentMaxSpeed = 6f;
   public float maxSpeed = 6f;
   public float breakingFactor = 0.3f;
 
@@ -63,6 +64,7 @@ public class PlayerController : MonoBehaviour
   void Start()
   {
     JetpackFuelLeft = maxJetpackDuration;
+    currentMaxSpeed = maxSpeed;
 
     rb = GetComponent<Rigidbody>();
     nb = GetComponent<NetworkedBody>();
@@ -169,8 +171,6 @@ public class PlayerController : MonoBehaviour
   }
 
 
-
-
   private void HandleLooking()
   {
     var mouseX = Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Mouse X");
@@ -231,10 +231,10 @@ public class PlayerController : MonoBehaviour
 
     // Try to limit xz movement if more than max speed
     var xzVelocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
-    var isTooFast = xzVelocity.sqrMagnitude > maxSpeed * maxSpeed * 0.7; // *0.9 so we can keep constant max speed instead of rubber banding at top speed
+    var isTooFast = xzVelocity.sqrMagnitude > currentMaxSpeed * currentMaxSpeed * 0.7; // *0.9 so we can keep constant max speed instead of rubber banding at top speed
     if (isTooFast)
     {
-      var idealDrag = walkSpeed / maxSpeed;
+      var idealDrag = walkSpeed / currentMaxSpeed;
       idealDrag = idealDrag / (idealDrag * Time.fixedDeltaTime + 1);
       var dragForce = -xzVelocity * idealDrag;
       rb.AddForce(dragForce, ForceMode.Acceleration);
@@ -295,7 +295,19 @@ public class PlayerController : MonoBehaviour
       JetpackFuelLeft -= Time.deltaTime;
     }
 
-    if (IsGrounded(out var _))
+    var shiftDown = NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.LeftShift);
+
+    if (shiftDown)
+    {
+      currentMaxSpeed = maxSpeed * 2f;
+      JetpackFuelLeft -= Time.deltaTime;
+    }
+    else
+    {
+      currentMaxSpeed = maxSpeed;
+    }
+
+    if (IsGrounded(out var _) && !shiftDown)
     {
       // Refill fuel
       JetpackFuelLeft = Mathf.Min(maxJetpackDuration, JetpackFuelLeft + Time.deltaTime);
