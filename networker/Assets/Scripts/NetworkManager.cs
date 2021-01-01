@@ -66,7 +66,7 @@ public class NetworkManager : MonoBehaviour
     ProcessBufferedEvents();
   }
 
-  private void Start()
+  private void Awake()
   {
     // Make sure we have one and only one NetworkManager
     if (instance != null)
@@ -83,15 +83,7 @@ public class NetworkManager : MonoBehaviour
       instantiatePrefabMap[pair.type] = pair.prefab;
     }
 
-    if (NetworkState.IsServer)
-    {
-      NetworkState.Server.OnEvent += HandleOnEvent;
-    }
-    else if (NetworkState.IsClient)
-    {
-      NetworkState.Client.OnEvent += HandleOnEvent;
-    }
-
+    NetworkState.OnEvent += HandleOnEvent;
     SceneManager.sceneLoaded += HandleOnSceneLoad;
   }
 

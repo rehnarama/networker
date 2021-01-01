@@ -11,33 +11,54 @@ public class LevelSpawner : MonoBehaviour
 
   private NetworkManager networkManager;
 
+  private int latestSpawnIndex = 0;
+
   private void Awake()
   {
     if (NetworkState.IsServer)
     {
-      int i = 0;
       foreach (var player in NetworkState.Server.Players.Values)
       {
-        NetworkState.Server.InvokeEvent(new InstantiateEvent(
-          spawnPoints[(i++) % spawnPoints.Length],
-          Quaternion.identity,
-          InstantiateEvent.InstantiateTypes.Player,
-          player,
-          NetworkState.Server.FindNextFreeBodyId()
-        ));
+        SpawnPlayer(player);
       }
     }
 
   }
 
+  private void SpawnPlayer(int player)
+  {
+    NetworkState.Server.InvokeEvent(new InstantiateEvent(
+      spawnPoints[(latestSpawnIndex++) % spawnPoints.Length],
+      Quaternion.identity,
+      InstantiateEvent.InstantiateTypes.Player,
+      player,
+      NetworkState.Server.FindNextFreeBodyId()
+    ));
+  }
+
   private void OnEnable()
   {
     NetworkManager.Instance.onEvent.AddListener(HandleOnEvent);
+
+    if (NetworkState.IsServer)
+    {
+      NetworkState.Server.OnPlayerJoin += HandlePlayerJoin;
+    }
   }
 
   private void OnDisable()
   {
     NetworkManager.Instance.onEvent.RemoveListener(HandleOnEvent);
+
+    if (NetworkState.IsServer)
+    {
+      NetworkState.Server.OnPlayerJoin -= HandlePlayerJoin;
+    }
+  }
+
+  private void HandlePlayerJoin(int playerId)
+  {
+    SpawnPlayer(playerId);
   }
 
   public void HandleOnEvent(IEvent e)
