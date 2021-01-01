@@ -55,9 +55,22 @@ public class MovingPlatform : MonoBehaviour
   {
     var deltaPosition = body.transform.position - lastPosition;
 
+    HashSet<Rigidbody> destroyedObjects = new HashSet<Rigidbody>();
+
     foreach (var rb in objectsOnTop)
     {
-      rb.transform.position += deltaPosition;
+      if (rb != null)
+      {
+        rb.transform.position += deltaPosition;
+      }
+      else
+      {
+        destroyedObjects.Add(rb);
+      }
+    }
+    foreach (var obj in destroyedObjects)
+    {
+      objectsOnTop.Remove(obj);
     }
 
     lastPosition = body.transform.position;

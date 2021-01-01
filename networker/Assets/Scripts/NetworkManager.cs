@@ -147,8 +147,11 @@ public class NetworkManager : MonoBehaviour
         break;
       case GameEvents.Destroy:
         var de = (DestroyEvent)gameEvent;
-        Destroy(NetworkState.RegisteredBodies[de.BodyId].gameObject);
-        NetworkState.Deregister(de.BodyId);
+        if (NetworkState.RegisteredBodies.ContainsKey(de.BodyId))
+        {
+          Destroy(NetworkState.RegisteredBodies[de.BodyId].gameObject);
+          NetworkState.Deregister(de.BodyId);
+        }
         break;
     }
   }
