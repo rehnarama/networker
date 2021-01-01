@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class Lava : MonoBehaviour
 {
-  private void OnCollisionEnter(Collision other)
+  private void OnTriggerEnter(Collider other)
   {
     if (NetworkState.IsServer)
     {
