@@ -190,6 +190,7 @@ MonoBehaviour:
   walkSpeed: 50
   lookSpeed: 250
   maxSpeed: 9
+  sprintMultiplier: 1.75
   breakingFactor: 50
   lookSmoothing: 0.5
   maxAngleUp: 60

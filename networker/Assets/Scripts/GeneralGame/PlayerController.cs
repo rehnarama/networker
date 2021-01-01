@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviour
   public float lookSpeed = 250f;
   private float currentMaxSpeed = 6f;
   public float maxSpeed = 6f;
+  public float sprintMultiplier = 1.5f;
   public float breakingFactor = 0.3f;
 
   [Tooltip("From 0-Infinity. 0 is no smoothing, Infinity is barely movable.")]
@@ -300,9 +301,9 @@ public class PlayerController : MonoBehaviour
 
     var shiftDown = NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.LeftShift);
 
-    if (shiftDown)
+    if (shiftDown && JetpackFuelLeft > 0f)
     {
-      currentMaxSpeed = maxSpeed * 2f;
+      currentMaxSpeed = maxSpeed * sprintMultiplier;
       JetpackFuelLeft -= Time.deltaTime;
       isJetpacking = true;
     }
