@@ -42,6 +42,7 @@ public class PlayerController : MonoBehaviour
   public float jumpPower = 8f;
   public float jetpackPower = 50f;
   public float JetpackFuelLeft { get; private set; }
+  public ParticleSystem jetpackParticles;
   public float maxJetpackHeight = 10f;
   public float maxJetpackDuration = 2f;
   public float kickPower = 5f;
@@ -265,6 +266,7 @@ public class PlayerController : MonoBehaviour
 
   private void HandleJetPack()
   {
+    bool isJetpacking = false;
     var spaceDown = Network.NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.Space);
     if (spaceDown && IsGrounded(out var hit))
     {
@@ -293,6 +295,7 @@ public class PlayerController : MonoBehaviour
 
       rb.AddForce(Vector3.up * realPower);
       JetpackFuelLeft -= Time.deltaTime;
+      isJetpacking = true;
     }
 
     var shiftDown = NetworkState.Input.For(nb.playerAuthority).GetDigital((int)KeyCode.LeftShift);
@@ -301,10 +304,20 @@ public class PlayerController : MonoBehaviour
     {
       currentMaxSpeed = maxSpeed * 2f;
       JetpackFuelLeft -= Time.deltaTime;
+      isJetpacking = true;
     }
     else
     {
       currentMaxSpeed = maxSpeed;
+    }
+
+    if (isJetpacking && !jetpackParticles.isPlaying)
+    {
+      jetpackParticles.Play();
+    }
+    else if (!isJetpacking && jetpackParticles.isPlaying)
+    {
+      jetpackParticles.Stop();
     }
 
     if (IsGrounded(out var _) && !shiftDown)

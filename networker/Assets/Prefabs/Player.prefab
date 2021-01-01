@@ -196,6 +196,8 @@ MonoBehaviour:
   maxAngleDown: -60
   jumpPower: 8
   jetpackPower: 50
+  jetpackParticles: {fileID: 7183998124529992681}
+  maxJetpackHeight: 10
   maxJetpackDuration: 2
   kickPower: 20
 --- !u!54 &1828143183752956990
@@ -510,6 +512,11 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: bc147bc8ad9bca947a51f3dd9166f741, type: 2}
+    - target: {fileID: 4700678469950935992, guid: 608fc710915ef2c44a4aba6235da4443,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4728047142398241701, guid: 608fc710915ef2c44a4aba6235da4443,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -520,6 +527,21 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 4012fac4f1f772c4ba3176f1abb7522d, type: 2}
+    - target: {fileID: 5282973452148886867, guid: 608fc710915ef2c44a4aba6235da4443,
+        type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key1.b
+      value: 0.34042364
+      objectReference: {fileID: 0}
+    - target: {fileID: 5282973452148886867, guid: 608fc710915ef2c44a4aba6235da4443,
+        type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key1.g
+      value: 0.34042364
+      objectReference: {fileID: 0}
+    - target: {fileID: 5282973452148886867, guid: 608fc710915ef2c44a4aba6235da4443,
+        type: 3}
+      propertyPath: ColorModule.gradient.maxGradient.key1.r
+      value: 0.9622642
+      objectReference: {fileID: 0}
     - target: {fileID: 5624628904341476569, guid: 608fc710915ef2c44a4aba6235da4443,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -561,6 +583,12 @@ Transform:
 --- !u!4 &1506339434944518014 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4469193546868349380, guid: 608fc710915ef2c44a4aba6235da4443,
+    type: 3}
+  m_PrefabInstance: {fileID: 3090125091703983802}
+  m_PrefabAsset: {fileID: 0}
+--- !u!198 &7183998124529992681 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 5282973452148886867, guid: 608fc710915ef2c44a4aba6235da4443,
     type: 3}
   m_PrefabInstance: {fileID: 3090125091703983802}
   m_PrefabAsset: {fileID: 0}
