@@ -285,7 +285,7 @@ public class PlayerController : MonoBehaviour
       var realPower = jetpackPower * powerModifier;
       if (realPower < -Physics.gravity.y * rb.mass)
       {
-        if (rb.velocity.y < Mathf.Epsilon)
+        if (rb.velocity.y < 3f) // Always allow to fly slightly up!
         {
           realPower = -Physics.gravity.y * rb.mass;
         }
