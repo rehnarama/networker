@@ -218,7 +218,7 @@ namespace Network.Physics
           }
 
           var largestAckedFrame = LatestAckedFrame;
-          while (frameCount - largestAckedFrame > bufferedInputs.Count)
+          while (frameCount - largestAckedFrame <= bufferedInputs.Count)
           {
             bufferedInputs.Dequeue();
           }
