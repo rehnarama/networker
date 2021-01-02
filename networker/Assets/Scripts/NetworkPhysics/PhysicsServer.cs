@@ -15,7 +15,7 @@ namespace Network.Physics
   public class PhysicsServer : IDisposable
   {
     private const int MAX_OBJECTS = 32;
-    private const int MAX_INPUTS = 32;
+    private const int MAX_INPUTS = 8;
 
     public Server Server { get; set; }
     public UDPConnection Connection
