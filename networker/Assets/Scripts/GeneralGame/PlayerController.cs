@@ -393,9 +393,11 @@ public class PlayerController : MonoBehaviour
     {
       var ray = head.playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
       var rotation = head.transform.rotation;
+      var yRotation = Quaternion.Euler(0, rotation.eulerAngles.y, 0);
+
       var spawnpoint =
-        new Vector3(transform.position.x, transform.position.y + 2, transform.position.z) +
-        head.transform.rotation * Vector3.forward * 2;
+        new Vector3(transform.position.x, transform.position.y + 1, transform.position.z) +
+        yRotation * Vector3.forward * 2;
 
       rb.GetComponent<Collider>().enabled = false;
       if (Physics.Raycast(ray, out var hit, 100f))

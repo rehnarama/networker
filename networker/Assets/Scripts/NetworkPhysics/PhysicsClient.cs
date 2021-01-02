@@ -119,7 +119,7 @@ namespace Network.Physics
             processEvents(physicsPacket.events);
           }
 
-          client.Send(new PhysicsAckPacket(physicsPacket.frame));
+          // client.Send(new PhysicsAckPacket(physicsPacket.frame));
           break;
         case PacketType.JoinAck:
           hasJoined = true;
@@ -228,7 +228,7 @@ namespace Network.Physics
                                  AngularVelocity = body.Value.body.angularVelocity
                                };
 
-      client.Send(new InputPacket(PlayerInput, authorityPositions.ToArray(), clientEvents.ToArray()));
+      client.Send(new InputPacket(largestFrame, PlayerInput, authorityPositions.ToArray(), clientEvents.ToArray()));
     }
 
     private void TickPhysics()

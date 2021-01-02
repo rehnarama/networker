@@ -11,7 +11,6 @@ namespace Network.Packets
     Physics,
     Join,
     JoinAck,
-    PhysicsAck,
     Input,
     EventAck,
     SignallingHost,
