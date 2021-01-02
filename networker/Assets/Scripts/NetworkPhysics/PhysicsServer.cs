@@ -210,19 +210,6 @@ namespace Network.Physics
         case PacketType.Input:
           HandleInputPacket(packet, remoteEndPoint);
           break;
-        case PacketType.PhysicsAck:
-          if (Players.TryGetValue(remoteEndPoint, out playerId))
-          {
-            var ackPacket = (PhysicsAckPacket)packet;
-            acks[playerId] = ackPacket.frame;
-          }
-
-          var largestAckedFrame = LatestAckedFrame;
-          while (frameCount - largestAckedFrame <= bufferedInputs.Count)
-          {
-            bufferedInputs.Dequeue();
-          }
-          break;
         case PacketType.EventAck:
           if (Players.TryGetValue(remoteEndPoint, out playerId))
           {
@@ -241,9 +228,28 @@ namespace Network.Physics
 
     private void HandleInputPacket(IPacket packet, IPEndPoint remoteEndPoint)
     {
+
       if (Players.TryGetValue(remoteEndPoint, out var playerId))
       {
         var inputPacket = (InputPacket)packet;
+
+        if (inputPacket.frame < acks[playerId])
+        {
+          // This was delivered out of order and is old info, scrap it!
+          return;
+        }
+        else
+        {
+          acks[playerId] = inputPacket.frame;
+        }
+        var largestAckedFrame = LatestAckedFrame;
+        while (frameCount - largestAckedFrame <= bufferedInputs.Count)
+        {
+          bufferedInputs.Dequeue();
+        }
+
+
+
         bufferedInputs.Last().Inputs[playerId] = inputPacket.input;
 
         foreach (var authorityPosition in inputPacket.AuthorityPositions)
@@ -255,7 +261,7 @@ namespace Network.Physics
               Vector3.Distance(pb.Body.body.position, authorityPosition.Position) < PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
             )
             {
-              pb.Body.body.position = authorityPosition.Position;
+              pb.Body.body.position = Vector3.MoveTowards(pb.Body.body.position, authorityPosition.Position, PhysicsConstants.SERVER_AUTHORITY_MAX_MOVE); // Try to smooth out updating position
               pb.Body.body.rotation = authorityPosition.Rotation;
               pb.Body.body.velocity = authorityPosition.Velocity;
               pb.Body.body.angularVelocity = authorityPosition.AngularVelocity;
