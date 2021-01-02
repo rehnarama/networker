@@ -12,7 +12,9 @@ namespace Events
     Trigger,
     Destroy,
     PlayerList,
-    NameChange
+    NameChange,
+    Ready,
+    ReadyList
   }
 
   public interface IGameEvent : IEvent

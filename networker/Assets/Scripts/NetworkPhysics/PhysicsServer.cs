@@ -271,7 +271,10 @@ namespace Network.Physics
 
         var latestEventAck = -1;
         bool shouldSendAck = false;
-        clientEventsReceived.TryGetValue(playerId, out latestEventAck);
+        if (clientEventsReceived.TryGetValue(playerId, out var previousAck))
+        {
+          latestEventAck = previousAck;
+        }
         foreach (var e in inputPacket.Events)
         {
           if (latestEventAck < e.EventNumber)

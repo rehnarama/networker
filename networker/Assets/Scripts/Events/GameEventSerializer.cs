@@ -63,10 +63,14 @@ namespace Events
           case GameEvents.NameChange:
             e = new NameChangeEvent();
             break;
-          default:
-            e = new PlayerListEvent();
-            // throw new System.SystemException($"Unknown GameEvent '{type}'. Did you forget to add serialization to this event, or is serialisation/deserialisation out of sync?");
+          case GameEvents.Ready:
+            e = new ReadyEvent();
             break;
+          case GameEvents.ReadyList:
+            e = new ReadyListEvent();
+            break;
+          default:
+            throw new System.SystemException($"Unknown GameEvent '{type}'. Did you forget to add serialization to this event, or is serialisation/deserialisation out of sync?");
         }
 
         e.EventNumber = eventNumber;
