@@ -12,11 +12,12 @@ namespace Network.Game
   {
     private PhysicsClient physicsClient;
 
-    private Dictionary<int, PlayerListItem> players = new Dictionary<int, PlayerListItem>();
 
-    public Dictionary<int, PlayerListItem> Players { get => players; set => players = value; }
+    public Dictionary<int, PlayerListItem> Players = new Dictionary<int, PlayerListItem>();
+    public Dictionary<int, ReadyListItem> ReadyStates = new Dictionary<int, ReadyListItem>();
 
     public event EventHandler<PlayerList> PlayerListUpdated;
+    public event EventHandler<ReadyListItem[]> ReadyStatesUpdated;
 
     public GameClient(PhysicsClient physicsClient)
     {
@@ -35,10 +36,30 @@ namespace Network.Game
           var ple = (PlayerListEvent)ge;
           foreach (var pli in ple.list.Players)
           {
-            players[pli.PlayerId] = pli;
+            Players[pli.PlayerId] = pli;
           }
           PlayerListUpdated?.Invoke(this, ple.list);
           break;
+        case GameEvents.ReadyList:
+          var rle = (ReadyListEvent)ge;
+          foreach (var rli in rle.readyStates)
+          {
+            ReadyStates[rli.PlayerId] = rli;
+          }
+          ReadyStatesUpdated?.Invoke(this, rle.readyStates);
+          break;
+      }
+    }
+
+    public bool IsReady(int playerId)
+    {
+      if (ReadyStates.ContainsKey(playerId))
+      {
+        return ReadyStates[playerId].Ready;
+      }
+      else
+      {
+        return false;
       }
     }
   }

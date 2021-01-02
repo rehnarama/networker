@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Events;
 using Network;
 using Network.Events;
@@ -33,11 +34,24 @@ public class GameLobbyController : MonoBehaviour
     }
   }
 
+  private void HandleReadyStatesUpdated(object sender, ReadyListItem[] e)
+  {
+    if (NetworkState.GameServer.Players.Keys.All((playerId) => NetworkState.GameServer.IsReady(playerId)))
+    {
+      HostStartPlay();
+    }
+  }
+
   private void OnEnable()
   {
     if (NetworkState.IsClient)
     {
       NetworkState.GameClient.PlayerListUpdated += HandlePlayerListUpdated;
+    }
+
+    if (NetworkState.IsServer)
+    {
+      NetworkState.GameServer.ReadyStatesUpdated += HandleReadyStatesUpdated;
     }
   }
 
@@ -46,6 +60,11 @@ public class GameLobbyController : MonoBehaviour
     if (NetworkState.IsClient)
     {
       NetworkState.GameClient.PlayerListUpdated -= HandlePlayerListUpdated;
+    }
+
+    if (NetworkState.IsServer)
+    {
+      NetworkState.GameServer.ReadyStatesUpdated -= HandleReadyStatesUpdated;
     }
   }
 
@@ -63,6 +82,14 @@ public class GameLobbyController : MonoBehaviour
       playButton.gameObject.SetActive(true);
 
       lobbyUI.SetActive(true);
+    }
+  }
+
+  public void Ready()
+  {
+    if (NetworkState.IsClient)
+    {
+      NetworkState.Client.InvokeClientEvent(new ReadyEvent() { Ready = !NetworkState.GameClient.IsReady(NetworkState.PlayerId) });
     }
   }
 
