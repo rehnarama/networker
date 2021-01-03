@@ -12,7 +12,7 @@ public class NetworkedBody : MonoBehaviour
 
   private static int idCounter = 1;
 
-  public Rigidbody body;
+  public Rigidbody body { get; private set; }
 
   public void Start()
   {

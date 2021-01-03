@@ -191,7 +191,7 @@ MonoBehaviour:
   lookSpeed: 250
   maxSpeed: 9
   sprintMultiplier: 1.75
-  breakingFactor: 50
+  breakingFactor: 0.5
   lookSmoothing: 0.5
   maxAngleUp: 60
   maxAngleDown: -60
@@ -231,7 +231,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAuthority: 0
   id: 0
-  body: {fileID: 0}
 --- !u!136 &7173544325928613629
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -402,7 +401,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAuthority: -1
   id: 0
-  body: {fileID: 0}
 --- !u!114 &7626708546296783030
 MonoBehaviour:
   m_ObjectHideFlags: 0

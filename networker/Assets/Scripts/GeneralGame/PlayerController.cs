@@ -227,7 +227,7 @@ public class PlayerController : MonoBehaviour
     groundRunningRotation = Quaternion.Slerp(groundRunningRotation, forceRotation, 0.05f);
 
     var eulerRotation = head.transform.localRotation.eulerAngles;
-    body.rotation = groundRunningRotation * Quaternion.Euler(0, eulerRotation.y, 0);
+    body.localRotation = groundRunningRotation * Quaternion.Euler(0, eulerRotation.y, 0);
   }
 
   private void HandleWalking()
@@ -243,7 +243,6 @@ public class PlayerController : MonoBehaviour
       // Checking if slope in front of use, in that case rotate the force up
       directedForce = Quaternion.FromToRotation(Vector3.up, groundHit.normal) * directedForce;
     }
-    rb.AddForce(directedForce, ForceMode.Acceleration);
 
     // Try to limit xz movement if more than max speed
     var xzVelocity = new Vector3(rb.velocity.x, 0, rb.velocity.z);
@@ -256,22 +255,18 @@ public class PlayerController : MonoBehaviour
       rb.AddForce(dragForce, ForceMode.Acceleration);
     }
 
-    rb.AddForce(GetBreakingForce());
+    rb.AddForce(directedForce, ForceMode.Acceleration);
+    rb.AddForce(GetBreakingForce(), ForceMode.VelocityChange);
   }
 
   private Vector3 GetBreakingForce()
   {
-    var sidewards = Vector3.right * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Horizontal");
-    var forwards = Vector3.forward * Network.NetworkState.Input.For(nb.playerAuthority).GetAnalog("Vertical");
-
     // If not moving in air, try to be still in xz-direction
-    if ((sidewards + forwards).sqrMagnitude < Mathf.Epsilon && IsGrounded(out var _))
+    if (!IsControlling && IsGrounded(out var ground))
     {
-      return -new Vector3(
-        rb.velocity.x,
-        0f,
-        rb.velocity.z
-      ) * breakingFactor;
+      var targetVelocity = Vector3.zero;
+
+      return (targetVelocity - rb.velocity) * breakingFactor;
     }
     else
     {
@@ -349,7 +344,7 @@ public class PlayerController : MonoBehaviour
 
   private bool IsGrounded(out RaycastHit hit)
   {
-    return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.1f, ~LayerMask.NameToLayer("Terrain"));
+    return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.2f, ~LayerMask.NameToLayer("Terrain"));
   }
 
   private void HandleTriggerKick()

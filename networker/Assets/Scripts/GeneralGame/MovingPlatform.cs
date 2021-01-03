@@ -15,8 +15,6 @@ public class MovingPlatform : MonoBehaviour
   private Rigidbody body;
 
 
-  private HashSet<Rigidbody> objectsOnTop = new HashSet<Rigidbody>();
-  private Vector3 lastPosition;
 
 
   void Awake()
@@ -26,9 +24,6 @@ public class MovingPlatform : MonoBehaviour
     body.position = points[nextPointIndex];
     nextPoint = points[nextPointIndex];
     CalculateNextPoint();
-
-    lastPosition = body.position;
-
   }
 
   private void CalculateNextPoint()
@@ -49,44 +44,4 @@ public class MovingPlatform : MonoBehaviour
     body.AddForce(delta.normalized * speed);
   }
 
-  private void LateUpdate()
-  {
-    var deltaPosition = body.transform.position - lastPosition;
-
-    HashSet<Rigidbody> destroyedObjects = new HashSet<Rigidbody>();
-
-    foreach (var rb in objectsOnTop)
-    {
-      if (rb != null)
-      {
-        rb.transform.position += deltaPosition;
-      }
-      else
-      {
-        destroyedObjects.Add(rb);
-      }
-    }
-    foreach (var obj in destroyedObjects)
-    {
-      objectsOnTop.Remove(obj);
-    }
-
-    lastPosition = body.transform.position;
-  }
-
-  private void OnCollisionEnter(Collision other)
-  {
-    if (other.rigidbody != null)
-    {
-      objectsOnTop.Add(other.rigidbody);
-    }
-  }
-
-  private void OnCollisionExit(Collision other)
-  {
-    if (other.rigidbody != null)
-    {
-      objectsOnTop.Remove(other.rigidbody);
-    }
-  }
 }
