@@ -225,7 +225,7 @@ public class PlayerController : MonoBehaviour
 
     var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
     var directedForce = rotation * force;
-    if (Physics.Raycast(transform.position, directedForce, out var groundHit, 0.5f))
+    if (Physics.Raycast(transform.position + Vector3.up * 0.1f, directedForce, out var groundHit, 0.5f))
     {
       // Checking if slope in front of use, in that case rotate the force up
       directedForce = Quaternion.FromToRotation(Vector3.up, groundHit.normal) * directedForce;
