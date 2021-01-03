@@ -6,10 +6,8 @@ using UnityEngine;
 public class MovingPlatform : MonoBehaviour
 {
   public Vector3[] points;
-  public float timePerPoint;
 
-  private float t;
-
+  public float speed;
   private int nextPointIndex = 0;
   private Vector3 nextPoint;
   private Vector3 prevPoint;
@@ -38,9 +36,6 @@ public class MovingPlatform : MonoBehaviour
     nextPointIndex = (nextPointIndex + 1) % points.Length;
     prevPoint = nextPoint;
     nextPoint = points[nextPointIndex];
-
-    var newVelocity = (nextPoint - prevPoint) / timePerPoint;
-    body.velocity = newVelocity;
   }
 
   private void Update()
@@ -49,6 +44,9 @@ public class MovingPlatform : MonoBehaviour
     {
       CalculateNextPoint();
     }
+
+    var delta = nextPoint - transform.position;
+    body.AddForce(delta.normalized * speed);
   }
 
   private void LateUpdate()
