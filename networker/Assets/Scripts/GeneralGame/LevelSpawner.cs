@@ -64,23 +64,21 @@ public class LevelSpawner : MonoBehaviour
   public void HandleOnEvent(IEvent e)
   {
     var gameEvent = (IGameEvent)e;
-    if (NetworkState.IsServer)
+
+    if (gameEvent.Type == GameEvents.Death)
     {
-      if (gameEvent.Type == GameEvents.Death)
+      var deathEvent = (DeathEvent)gameEvent;
+      var players = FindObjectsOfType<PlayerController>();
+      foreach (var player in players)
       {
-        var deathEvent = (DeathEvent)gameEvent;
-        var position = spawnPoints[Random.Range(0, spawnPoints.Length)];
-        var players = FindObjectsOfType<PlayerController>();
-        foreach (var player in players)
+        if (player.PlayerId == deathEvent.Player)
         {
-          if (player.PlayerId == deathEvent.Player)
-          {
-            player.transform.position = position;
-            break;
-          }
+          player.Die();
+          break;
         }
       }
     }
+
   }
 
 }

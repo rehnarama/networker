@@ -33,4 +33,9 @@ public class NetworkedBody : MonoBehaviour
     body = GetComponent<Rigidbody>();
     NetworkState.RegisterBody(id, this);
   }
+
+  private void OnDestroy()
+  {
+    NetworkState.Deregister(id);
+  }
 }

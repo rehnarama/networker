@@ -47,6 +47,7 @@ public class PlayerController : MonoBehaviour
   public float maxJetpackHeight = 10f;
   public float maxJetpackDuration = 2f;
   public float kickPower = 5f;
+  public bool Dead { get; private set; }
 
   private Vector3 originalJetpackPosition;
   private Quaternion groundRunningRotation = Quaternion.identity;
@@ -62,6 +63,18 @@ public class PlayerController : MonoBehaviour
     }
   }
 
+
+  internal void Die()
+  {
+    var renderers = GetComponentsInChildren<Renderer>();
+    foreach (var renderer in renderers)
+    {
+      var c = renderer.material.color;
+      renderer.material.color = new Color(c.r, c.g, c.b, 0.5f);
+    }
+    gameObject.layer = LayerMask.NameToLayer("Ghost");
+    Dead = true;
+  }
 
   void Start()
   {
@@ -225,7 +238,7 @@ public class PlayerController : MonoBehaviour
 
     var rotation = Quaternion.Euler(0, head.transform.rotation.eulerAngles.y, 0);
     var directedForce = rotation * force;
-    if (Physics.Raycast(transform.position + Vector3.up * 0.1f, directedForce, out var groundHit, 0.5f))
+    if (Physics.Raycast(transform.position + Vector3.up * 0.1f, directedForce, out var groundHit, 0.5f, ~LayerMask.NameToLayer("Terrain")))
     {
       // Checking if slope in front of use, in that case rotate the force up
       directedForce = Quaternion.FromToRotation(Vector3.up, groundHit.normal) * directedForce;
@@ -328,11 +341,15 @@ public class PlayerController : MonoBehaviour
       JetpackFuelLeft = Mathf.Min(maxJetpackDuration, JetpackFuelLeft + Time.deltaTime);
     }
 
+    if (Dead)
+    {
+      JetpackFuelLeft = maxJetpackDuration;
+    }
   }
 
   private bool IsGrounded(out RaycastHit hit)
   {
-    return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.1f);
+    return Physics.Raycast(transform.position + Vector3.up * 0.05f, Vector3.down, out hit, 0.1f, ~LayerMask.NameToLayer("Terrain"));
   }
 
   private void HandleTriggerKick()
