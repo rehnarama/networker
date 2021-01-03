@@ -77,6 +77,7 @@ public class PlayerController : MonoBehaviour
       {
         Camera.main.gameObject.SetActive(false);
         head.playerCamera.enabled = true;
+        head.playerCamera.GetComponent<AudioListener>().enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
       }
     }
