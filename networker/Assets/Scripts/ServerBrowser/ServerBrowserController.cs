@@ -27,16 +27,29 @@ public class ServerBrowserController : MonoBehaviour
   {
     searchClient = new SignallingClient(Config.SIGNALLING_SERVER_ENDPOINT, Config.CLIENT_PORT);
     searchClient.OnHostList += OnHostList;
+    searchClient.HolePunchEstablished += OnHolePunchEstablished;
 
     hostList.OnJoin += HandleOnJoin;
 
     nothingFoundText.gameObject.SetActive(false);
   }
 
+  private void OnDestroy()
+  {
+    searchClient.OnHostList -= OnHostList;
+    searchClient.HolePunchEstablished -= OnHolePunchEstablished;
+    hostList.OnJoin -= HandleOnJoin;
+  }
+
+  private void OnHolePunchEstablished(object sender, IPEndPoint e)
+  {
+    NetworkState.StartPhysicsClient(e, new PacketSerializer(), new GameEventSerializer());
+    GotoLobby();
+  }
+
   private void HandleOnJoin(IPEndPoint endPoint)
   {
-    NetworkState.StartPhysicsClient(endPoint, new PacketSerializer(), new GameEventSerializer());
-    GotoLobby();
+    searchClient.StartRequestHolePunching(endPoint);
   }
 
   private void GotoLobby()
