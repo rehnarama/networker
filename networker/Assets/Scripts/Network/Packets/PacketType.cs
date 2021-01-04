@@ -15,6 +15,9 @@ namespace Network.Packets
     EventAck,
     SignallingHost,
     SignallingHostList,
-    SignallingRequestHostList
+    SignallingRequestHostList,
+    SignallingHolePunch,
+    SignallingRequestHolePunch,
+    SignallingJoinRequest
   }
 }

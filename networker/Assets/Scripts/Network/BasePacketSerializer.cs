@@ -18,7 +18,11 @@ namespace Network
         type == PacketType.JoinAck ||
         type == PacketType.SignallingHost ||
         type == PacketType.SignallingHostList ||
-        type == PacketType.SignallingRequestHostList;
+        type == PacketType.SignallingRequestHostList ||
+        type == PacketType.SignallingHolePunch ||
+        type == PacketType.SignallingRequestHolePunch ||
+        type == PacketType.SignallingJoinRequest;
+
 
       if (serializer.IsReader)
       {
@@ -38,6 +42,15 @@ namespace Network
             break;
           case PacketType.SignallingRequestHostList:
             packet = new SignallingRequestHostListPacket();
+            break;
+          case PacketType.SignallingHolePunch:
+            packet = new SignallingHolePunch();
+            break;
+          case PacketType.SignallingRequestHolePunch:
+            packet = new SignallingRequestHolePunch();
+            break;
+          case PacketType.SignallingJoinRequest:
+            packet = new SignallingJoinRequest();
             break;
         }
       }
