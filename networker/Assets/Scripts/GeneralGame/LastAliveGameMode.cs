@@ -87,8 +87,6 @@ public class LastAliveGameMode : MonoBehaviour
           players.Remove(death);
         }
 
-
-        UnityEngine.Debug.Log("Invoking win event");
         NetworkState.Server.InvokeEvent(new WinEvent(players.FirstOrDefault()));
         gameState = GameStates.WaitingForRestart;
       }
