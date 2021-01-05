@@ -30,12 +30,9 @@ public class CharacterCameraController : MonoBehaviour
 
     var delta = targetPosition - head.transform.position;
 
-    if (Physics.Raycast(head.transform.position, delta, out var hit, delta.magnitude / 0.95f))
+    if (Physics.Raycast(head.transform.position, delta, out var hit, delta.magnitude / 0.95f, LayerMask.GetMask("Terrain")))
     {
-      if (hit.collider.gameObject.tag == "Terrain")
-      {
-        targetPosition = head.transform.position + targetRotation * (Vector3.back * hit.distance * 0.95f);
-      }
+      targetPosition = head.transform.position + targetRotation * (Vector3.back * hit.distance * 0.95f);
     }
     transform.position = targetPosition;
   }
