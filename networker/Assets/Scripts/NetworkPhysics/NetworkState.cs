@@ -27,24 +27,24 @@ namespace Network
     {
       add
       {
-        if (NetworkState.IsServer)
+        if (NetworkState.IsClient)
         {
-          NetworkState.Server.OnEvent += value;
+          NetworkState.Client.OnEvent += value;
         }
         else
         {
-          NetworkState.Client.OnEvent += value;
+          NetworkState.Server.OnEvent += value;
         }
       }
       remove
       {
-        if (NetworkState.IsServer)
+        if (NetworkState.IsClient)
         {
-          NetworkState.Server.OnEvent -= value;
+          NetworkState.Client.OnEvent -= value;
         }
         else
         {
-          NetworkState.Client.OnEvent -= value;
+          NetworkState.Server.OnEvent -= value;
         }
       }
     }
@@ -160,6 +160,21 @@ namespace Network
         else
         {
           return -1;
+        }
+      }
+    }
+
+    public static Dictionary<int, PlayerListItem> Players
+    {
+      get
+      {
+        if (IsServer)
+        {
+          return GameServer.Players;
+        }
+        else
+        {
+          return GameClient.Players;
         }
       }
     }

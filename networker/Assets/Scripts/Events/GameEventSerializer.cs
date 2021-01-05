@@ -69,6 +69,9 @@ namespace Events
           case GameEvents.ReadyList:
             e = new ReadyListEvent();
             break;
+          case GameEvents.Win:
+            e = new WinEvent();
+            break;
           default:
             throw new System.SystemException($"Unknown GameEvent '{type}'. Did you forget to add serialization to this event, or is serialisation/deserialisation out of sync?");
         }

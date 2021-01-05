@@ -131,7 +131,7 @@ public class PlayerController : MonoBehaviour
   {
     if (NetworkState.IsServer)
     {
-      NetworkState.Server.OnClientEvent += OnClientEvent;
+      NetworkState.Server.OnClientEvent -= OnClientEvent;
     }
   }
   private void OnClientEvent(IEvent e, int playerId)

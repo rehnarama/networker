@@ -17,12 +17,16 @@ namespace Network.Game
 
     public event EventHandler<ReadyListItem[]> ReadyStatesUpdated;
 
+    private LastAliveGameMode gameMode;
+
     public GameServer(PhysicsServer physicsServer)
     {
       this.physicsServer = physicsServer;
 
       this.physicsServer.OnClientEvent += HandleOnEvent;
       this.physicsServer.OnPlayerJoin += HandleOnPlayerJoin;
+
+      this.gameMode = new LastAliveGameMode(this);
     }
 
     private void HandleOnPlayerJoin(int playerId)

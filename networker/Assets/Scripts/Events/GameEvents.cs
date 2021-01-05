@@ -14,7 +14,8 @@ namespace Events
     PlayerList,
     NameChange,
     Ready,
-    ReadyList
+    ReadyList,
+    Win
   }
 
   public interface IGameEvent : IEvent
