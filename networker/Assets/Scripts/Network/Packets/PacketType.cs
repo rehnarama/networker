@@ -18,6 +18,7 @@ namespace Network.Packets
     SignallingRequestHostList,
     SignallingHolePunch,
     SignallingRequestHolePunch,
-    SignallingJoinRequest
+    SignallingJoinRequest,
+    PhysicsAck
   }
 }

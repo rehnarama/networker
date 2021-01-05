@@ -119,7 +119,7 @@ namespace Network.Physics
             processEvents(physicsPacket.events);
           }
 
-          // client.Send(new PhysicsAckPacket(physicsPacket.frame));
+          client.Send(new PhysicsAckPacket(physicsPacket.frame));
           break;
         case PacketType.JoinAck:
           hasJoined = true;

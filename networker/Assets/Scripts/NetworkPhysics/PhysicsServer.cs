@@ -39,6 +39,8 @@ namespace Network.Physics
         return acks.Aggregate(frameCount, (min, ack) => Math.Min(ack.Value, min));
       }
     }
+
+    private Dictionary<int, int> playerFrames = new Dictionary<int, int>();
     private Dictionary<int, int> eventAcks = new Dictionary<int, int>();
     private int LatestAckedEvent
     {
@@ -190,6 +192,7 @@ namespace Network.Physics
 
         eventAcks[playerId] = LatestAckedEvent;
         acks[playerId] = LatestAckedFrame;
+        playerFrames[playerId] = LatestAckedFrame;
 
         OnPlayerJoin?.Invoke(playerId);
       }
@@ -209,6 +212,19 @@ namespace Network.Physics
       {
         case PacketType.Input:
           HandleInputPacket(packet, remoteEndPoint);
+          break;
+        case PacketType.PhysicsAck:
+          if (Players.TryGetValue(remoteEndPoint, out playerId))
+          {
+            var ackPacket = (PhysicsAckPacket)packet;
+            acks[playerId] = Math.Max(ackPacket.frame, acks[playerId]);
+
+            var largestAckedFrame = LatestAckedFrame;
+            while (frameCount - largestAckedFrame <= bufferedInputs.Count)
+            {
+              bufferedInputs.Dequeue();
+            }
+          }
           break;
         case PacketType.EventAck:
           if (Players.TryGetValue(remoteEndPoint, out playerId))
@@ -233,22 +249,15 @@ namespace Network.Physics
       {
         var inputPacket = (InputPacket)packet;
 
-        if (inputPacket.frame < acks[playerId])
+        if (inputPacket.frame < playerFrames[playerId])
         {
           // This was delivered out of order and is old info, scrap it!
           return;
         }
         else
         {
-          acks[playerId] = inputPacket.frame;
+          playerFrames[playerId] = inputPacket.frame;
         }
-        var largestAckedFrame = LatestAckedFrame;
-        while (frameCount - largestAckedFrame <= bufferedInputs.Count)
-        {
-          bufferedInputs.Dequeue();
-        }
-
-
 
         bufferedInputs.Last().Inputs[playerId] = inputPacket.input;
 
