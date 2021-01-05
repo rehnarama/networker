@@ -16,14 +16,18 @@ namespace Network.Game
     public Dictionary<int, PlayerListItem> Players = new Dictionary<int, PlayerListItem>();
     public Dictionary<int, ReadyListItem> ReadyStates = new Dictionary<int, ReadyListItem>();
 
+    public Dictionary<int, int> PlayerScores { get; private set; } = new Dictionary<int, int>();
+
     public event EventHandler<PlayerList> PlayerListUpdated;
     public event EventHandler<ReadyListItem[]> ReadyStatesUpdated;
+
 
     public GameClient(PhysicsClient physicsClient)
     {
       this.physicsClient = physicsClient;
 
       this.physicsClient.OnEvent += HandleOnEvent;
+
     }
 
     private void HandleOnEvent(IEvent e)

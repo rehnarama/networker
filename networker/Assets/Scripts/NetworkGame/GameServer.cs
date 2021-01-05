@@ -14,10 +14,10 @@ namespace Network.Game
 
     public Dictionary<int, PlayerListItem> Players = new Dictionary<int, PlayerListItem>();
     public Dictionary<int, ReadyListItem> ReadyStates = new Dictionary<int, ReadyListItem>();
+    public Dictionary<int, int> PlayerScores { get; private set; } = new Dictionary<int, int>();
 
     public event EventHandler<ReadyListItem[]> ReadyStatesUpdated;
 
-    private LastAliveGameMode gameMode;
 
     public GameServer(PhysicsServer physicsServer)
     {
@@ -25,8 +25,6 @@ namespace Network.Game
 
       this.physicsServer.OnClientEvent += HandleOnEvent;
       this.physicsServer.OnPlayerJoin += HandleOnPlayerJoin;
-
-      this.gameMode = new LastAliveGameMode(this);
     }
 
     private void HandleOnPlayerJoin(int playerId)

@@ -36,6 +36,7 @@ public class GameLogger : MonoBehaviour
   {
     var playerName = NetworkState.Players[e.Player].Name;
     log.Log($"<color=red>{playerName}</color> won!");
+    log.Log($"<color=red>{playerName}</color> now has {NetworkState.GameClient.PlayerScores[e.Player]} points");
     log.Log($"Restarting the game soon");
   }
 
