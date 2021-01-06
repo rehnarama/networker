@@ -265,15 +265,28 @@ namespace Network.Physics
         {
           if (idPriorityMap.TryGetValue(authorityPosition.Id, out var pb))
           {
+
+            int framesBehind = frameCount - inputPacket.frame;
+
+            var target = authorityPosition;
+
+            if (pb.Body.predictMovement)
+            {
+              new PhysicsState()
+              {
+                Position = authorityPosition.Position + authorityPosition.Velocity * Time.deltaTime * framesBehind,
+                Rotation = authorityPosition.Rotation * Quaternion.Euler(authorityPosition.AngularVelocity * Time.deltaTime * framesBehind),
+                Velocity = authorityPosition.Velocity,
+                AngularVelocity = authorityPosition.AngularVelocity
+              };
+            }
+
             if (
               pb.Body.playerAuthority == playerId &&
-              Vector3.Distance(pb.Body.body.position, authorityPosition.Position) < PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
+              Vector3.Distance(authorityPosition.Position, target.Position) < PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
             )
             {
-              pb.Body.body.position = Vector3.MoveTowards(pb.Body.body.position, authorityPosition.Position, PhysicsConstants.SERVER_AUTHORITY_MAX_MOVE); // Try to smooth out updating position
-              pb.Body.body.rotation = authorityPosition.Rotation;
-              pb.Body.body.velocity = authorityPosition.Velocity;
-              pb.Body.body.angularVelocity = authorityPosition.AngularVelocity;
+              pb.Body.TargetState = target;
             }
           }
         }

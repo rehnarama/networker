@@ -164,15 +164,26 @@ namespace Network.Physics
       {
         if (networkBodies.TryGetValue(data.Id, out var go))
         {
+          int framesBehind = largestFrame - currentFrame;
+
+          PhysicsState target = data;
+          if (go.predictMovement)
+          {
+            target = new PhysicsState()
+            {
+              AngularVelocity = data.AngularVelocity,
+              Position = data.Position + data.Velocity * Time.deltaTime * framesBehind,
+              Rotation = data.Rotation * Quaternion.Euler(data.AngularVelocity * Time.deltaTime * framesBehind),
+              Velocity = data.Velocity
+            };
+          }
+
           if (
             go.playerAuthority != PlayerId ||
-            Vector3.Distance(go.body.position, data.Position) > PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
+            Vector3.Distance(go.body.position, target.Position) > PhysicsConstants.MAX_AUTHORITY_DISTANCE_DIFF
           )
           {
-            go.body.position = data.Position;
-            go.body.velocity = data.Velocity;
-            go.body.rotation = data.Rotation;
-            go.body.angularVelocity = data.AngularVelocity;
+            go.TargetState = target;
           }
         }
       }

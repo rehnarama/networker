@@ -10,6 +10,9 @@ public class NetworkedBody : MonoBehaviour
   public int playerAuthority = -1;
   public int id = 0;
 
+  public bool predictMovement;
+  public PhysicsState? TargetState;
+
   private static int idCounter = 1;
 
   public Rigidbody body { get; private set; }
@@ -24,6 +27,26 @@ public class NetworkedBody : MonoBehaviour
     {
       id = idCounter + 1;
       RegisterBody();
+    }
+  }
+
+  private void Update()
+  {
+
+    if (playerAuthority != NetworkState.PlayerId && TargetState.HasValue) 
+    {
+      if (predictMovement)
+      {
+        body.position = Vector3.MoveTowards(body.position, TargetState.Value.Position, PhysicsConstants.PREDICTION_MAX_MOVE);
+        body.rotation = Quaternion.RotateTowards(body.rotation, TargetState.Value.Rotation, PhysicsConstants.PREDICTION_MAX_ANGLE_MOVE);
+      }
+      else
+      {
+        body.position = TargetState.Value.Position;
+        body.rotation = TargetState.Value.Rotation;
+      }
+      body.velocity = TargetState.Value.Velocity;
+      body.angularVelocity = TargetState.Value.AngularVelocity;
     }
   }
 

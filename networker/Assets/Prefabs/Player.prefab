@@ -231,6 +231,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAuthority: 0
   id: 0
+  predictMovement: 1
 --- !u!136 &7173544325928613629
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -401,6 +402,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAuthority: -1
   id: 0
+  predictMovement: 0
 --- !u!114 &7626708546296783030
 MonoBehaviour:
   m_ObjectHideFlags: 0

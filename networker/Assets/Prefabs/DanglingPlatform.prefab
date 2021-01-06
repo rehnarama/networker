@@ -258,7 +258,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerAuthority: -1
-  id: 14
+  id: 0
+  predictMovement: 1
 --- !u!65 &2840796332742539244
 BoxCollider:
   m_ObjectHideFlags: 0

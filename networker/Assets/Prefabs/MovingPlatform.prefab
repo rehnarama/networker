@@ -129,6 +129,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerAuthority: -1
   id: 13
+  predictMovement: 1
 --- !u!114 &5771389726877071953
 MonoBehaviour:
   m_ObjectHideFlags: 0
